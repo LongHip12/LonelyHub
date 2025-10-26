@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/3b49b260efcbde10"))()
+game.Players.LocalPlayer:Kick("Script Hiện Tại Đang Update!Hãy đợi tôi fix lỗi\nJoin Discord: dsc.gg/lonelyhub")
