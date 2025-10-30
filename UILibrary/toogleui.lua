@@ -14,6 +14,8 @@ dutdit.AnchorPoint = Vector2.new(0.1, 0.1)
 dutdit.BackgroundColor3 = Color3.fromRGB(255, 255, 255)  
 dutdit.Position = UDim2.new(0, 20, 0.1, -6)  
 dutdit.Size = UDim2.new(0, 50, 0, 50)  
+dutdit.Active = true
+dutdit.Draggable = true
 
 UICorner.CornerRadius = UDim.new(1, 0)  
 UICorner.Parent = dutdit  
