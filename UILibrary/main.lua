@@ -254,7 +254,7 @@ local Themes = {
         HoverChange = 0.04
     },
     LonelyRed = {
-        Name = "LonelyRed",
+        Name = "Lonely Red",
         Accent = Color3.fromRGB(255, 80, 80),
         AcrylicMain = Color3.fromRGB(50, 35, 35),
         AcrylicBorder = Color3.fromRGB(90, 60, 60),
