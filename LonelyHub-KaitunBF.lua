@@ -1,1 +1,2 @@
-game.Players.LocalPlayer:Kick("Script Hiện Tại Đang Update!Hãy đợi tôi fix lỗi\nJoin Discord: dsc.gg/lonelyhub")
+game.Players.LocalPlayer:Kick("Script đã gần hoàn thiện và đang trong giai đoạn thử nghiệm :D\nJoin Discord: dsc.gg/lonelyhub")
+
