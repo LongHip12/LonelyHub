@@ -485,8 +485,18 @@ end
 
 function Library:CreateWindow(Setting)
 
-	local TitleNameMain =  "Blox Fruit"
-	getgenv().MainDesc = Setting.Desc or ""
+	local TitleNameMain = Setting.Title or "by LongHip12"  -- THÊM TITLE
+	getgenv().MainDesc = Setting.Desc or Setting.Subtitle or ""  -- THÊM SUBTITLE
+	
+	-- THÊM ẢNH NẾU CÓ
+	if Setting.Image then
+		getgenv().UIColor["Logo Image"] = Setting.Image
+	end
+	
+	-- THÊM MÀU TITLE NẾU CÓ
+	if Setting.TitleColor then
+		getgenv().UIColor["Title Text Color"] = Setting.TitleColor
+	end
 
 	local djtmemay = false
 	cac = false
