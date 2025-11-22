@@ -1187,30 +1187,29 @@ function Library:CreateWindow(Setting)
 
 			local sectionFunction = {}
 
-
-
 function sectionFunction:AddButton(Setting)
     Setting = Setting or {}
-    local Title = tostring(Setting.Title or "Button")
-    local Callback = Setting.Callback or function() end
+    
+    local Title = tostring(Setting.Text or Setting.Title or "Button")
+    local Callback = Setting.Func or Setting.Callback or function() end
 
     local ButtonFrame = Instance.new("Frame")
     local ButtonBG = Instance.new("Frame")
     local ButtonCorner = Instance.new("UICorner")
     local ButtonTitle = Instance.new("TextLabel")
     local Button = Instance.new("TextButton")
-    local HoverFrame = Instance.new("Frame")
-    local HoverCorner = Instance.new("UICorner")
     local ClickEffect = Instance.new("Frame")
     local ClickCorner = Instance.new("UICorner")
-    
-    ButtonFrame.Name = Title .. '_Button'
+    local HoverFrame = Instance.new("Frame")
+    local HoverCorner = Instance.new("UICorner")
+
+    ButtonFrame.Name = Title .. 'Button'
     ButtonFrame.Parent = Section
     ButtonFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
     ButtonFrame.BackgroundTransparency = 1.000
     ButtonFrame.Position = UDim2.new(0, 0, 0.300000012, 0)
     ButtonFrame.Size = UDim2.new(1, 0, 0, 25)
-    
+
     ButtonBG.Name = "ButtonBG"
     ButtonBG.Parent = ButtonFrame
     ButtonBG.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1218,35 +1217,35 @@ function sectionFunction:AddButton(Setting)
     ButtonBG.Size = UDim2.new(1, -10, 1, 0)
     ButtonBG.BackgroundColor3 = getgenv().UIColor["Button Color"]
     ButtonBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-    
+
     ButtonCorner.CornerRadius = UDim.new(0, 4)
     ButtonCorner.Name = "ButtonCorner"
     ButtonCorner.Parent = ButtonBG
-    
-    -- Hover effect
+
+    -- HOVER EFFECT
     HoverFrame.Name = "HoverFrame"
     HoverFrame.Parent = ButtonBG
     HoverFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     HoverFrame.BackgroundTransparency = 0.9
     HoverFrame.Size = UDim2.new(1, 0, 1, 0)
-    HoverFrame.ZIndex = 2
-    
+    HoverFrame.ZIndex = 1
+
     HoverCorner.CornerRadius = UDim.new(0, 4)
     HoverCorner.Parent = HoverFrame
-    
-    -- Click effect
+
+    -- CLICK EFFECT
     ClickEffect.Name = "ClickEffect"
     ClickEffect.Parent = ButtonBG
     ClickEffect.AnchorPoint = Vector2.new(0.5, 0.5)
-    ClickEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ClickEffect.BackgroundTransparency = 0.8
+    ClickEffect.BackgroundColor3 = getgenv().UIColor["Button Color"]
+    ClickEffect.BackgroundTransparency = 0.7
     ClickEffect.Size = UDim2.new(0, 0, 0, 0)
     ClickEffect.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ClickEffect.ZIndex = 3
-    
+    ClickEffect.ZIndex = 2
+
     ClickCorner.CornerRadius = UDim.new(0, 4)
     ClickCorner.Parent = ClickEffect
-    
+
     ButtonTitle.Name = "TextColor"
     ButtonTitle.Parent = ButtonBG
     ButtonTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
@@ -1260,8 +1259,8 @@ function sectionFunction:AddButton(Setting)
     ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
     ButtonTitle.TextColor3 = getgenv().UIColor["Text Color"]
     ButtonTitle.TextStrokeTransparency = getgenv().UIColor["Text Stroke Transparency"]
-    ButtonTitle.ZIndex = 4
-    
+    ButtonTitle.ZIndex = 3
+
     Button.Name = "Button"
     Button.Parent = ButtonBG
     Button.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
@@ -1271,9 +1270,9 @@ function sectionFunction:AddButton(Setting)
     Button.Text = ""
     Button.TextColor3 = Color3.fromRGB(0, 0, 0)
     Button.TextSize = 14.000
-    Button.ZIndex = 5
-    
-    -- Hover animations
+    Button.ZIndex = 4
+
+    -- HOVER ANIMATION
     Button.MouseEnter:Connect(function()
         TweenService:Create(HoverFrame, TweenInfo.new(0.2), {
             BackgroundTransparency = 0.7
@@ -1282,7 +1281,7 @@ function sectionFunction:AddButton(Setting)
             Size = UDim2.new(1, -5, 1, 0)
         }):Play()
     end)
-    
+
     Button.MouseLeave:Connect(function()
         TweenService:Create(HoverFrame, TweenInfo.new(0.2), {
             BackgroundTransparency = 0.9
@@ -1291,28 +1290,29 @@ function sectionFunction:AddButton(Setting)
             Size = UDim2.new(1, -10, 1, 0)
         }):Play()
     end)
-    
-    -- Click animation
+
+    -- CLICK ANIMATION
     Button.MouseButton1Click:Connect(function()
-        -- Click effect animation
-        TweenService:Create(ClickEffect, TweenInfo.new(0.1), {
+        TweenService:Create(ClickEffect, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1
         }):Play()
         
-        -- Reset click effect
-        wait(0.1)
+        wait(0.3)
         ClickEffect.Size = UDim2.new(0, 0, 0, 0)
-        ClickEffect.BackgroundTransparency = 0.8
+        ClickEffect.BackgroundTransparency = 0.7
         
-        Callback()
+        if Callback then
+            Callback()
+        end
     end)
-    
-    local buttonFunc = {}
-    function buttonFunc:SetTitle(vl)
+
+    local buttonFunction = {}
+    function buttonFunction:SetTitle(vl)
         ButtonTitle.Text = vl
     end
-    return buttonFunc
+
+    return buttonFunction
 end
 
 function sectionFunction:AddToggle(idk,Setting)
@@ -1327,6 +1327,7 @@ function sectionFunction:AddToggle(idk,Setting)
     local TogFrame1 = Instance.new("Frame")
     local checkbox = Instance.new("ImageLabel")
     local dot = Instance.new("Frame")
+    local fillFrame = Instance.new("Frame")
     local ToggleDescription = Instance.new("TextLabel")
     local ToggleTitle = Instance.new("TextLabel")
     local ToggleBg = Instance.new("Frame")
@@ -1361,14 +1362,25 @@ function sectionFunction:AddToggle(idk,Setting)
     checkbox.Image = "rbxassetid://4552505888"
     checkbox.ImageColor3 = getgenv().UIColor["Toggle Border Color"]
     
+    -- FILL FRAME (gần bằng cạnh)
+    fillFrame.Name = "FillFrame"
+    fillFrame.Parent = checkbox
+    fillFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    fillFrame.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
+    fillFrame.Size = Default and UDim2.new(1, -2, 1, -2) or UDim2.new(0, 0, 0, 0)
+    fillFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    fillFrame.BackgroundTransparency = Default and 0 or 1
+    fillFrame.ZIndex = 2
+    
     -- DOT Ở GIỮA
-    dot.Name = "check"
+    dot.Name = "Dot"
     dot.Parent = checkbox
     dot.AnchorPoint = Vector2.new(0.5, 0.5)
     dot.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
-    dot.Size = UDim2.new(0, 0, 0, 0)
+    dot.Size = UDim2.new(0, 4, 0, 4)
     dot.Position = UDim2.new(0.5, 0, 0.5, 0)
     dot.BackgroundTransparency = Default and 1 or 0
+    dot.ZIndex = 3
     
     local cac = 5
     if Description and Description ~= "" then
@@ -1426,7 +1438,7 @@ function sectionFunction:AddToggle(idk,Setting)
     ToggleButton.Text = ""
     ToggleButton.TextColor3 = Color3.fromRGB(0, 0, 0)
     ToggleButton.TextSize = 14.000
-    ToggleButton.ZIndex = 3
+    ToggleButton.ZIndex = 4
     
     ToggleList.Name = "ToggleList"
     ToggleList.Parent = ToggleFrame
@@ -1436,28 +1448,17 @@ function sectionFunction:AddToggle(idk,Setting)
     ToggleList.Padding = UDim.new(0, 5)
     
     local function ChangeStage(val)
-        local targetTransparency = val and 0 or 1
+        local fillSize = val and UDim2.new(1, -2, 1, -2) or UDim2.new(0, 0, 0, 0)
+        local fillTransparency = val and 0 or 1
+        local dotTransparency = val and 1 or 0
         
-        -- HIỆU ỨNG CHO DOT
-        game.TweenService:Create(dot, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"], Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            BackgroundTransparency = targetTransparency
-        }):Play()
+        -- KHÔNG CÓ ANIMATION - SET TRỰC TIẾP
+        fillFrame.Size = fillSize
+        fillFrame.BackgroundTransparency = fillTransparency
+        dot.BackgroundTransparency = dotTransparency
         
         Callback(val)
     end
-    
-    -- Hover effects
-    ToggleButton.MouseEnter:Connect(function()
-        TweenService:Create(checkbox, TweenInfo.new(0.2), {
-            ImageColor3 = getgenv().UIColor["Toggle Border Color"]:Lerp(Color3.new(1, 1, 1), 0.3)
-        }):Play()
-    end)
-    
-    ToggleButton.MouseLeave:Connect(function()
-        TweenService:Create(checkbox, TweenInfo.new(0.2), {
-            ImageColor3 = getgenv().UIColor["Toggle Border Color"]
-        }):Play()
-    end)
     
     local function ButtonClick()
         Default = not Default
@@ -1750,19 +1751,16 @@ end
         SampleItemTitle.TextStrokeTransparency = 0.500
         SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
         
-        -- Checkbox frame (90% chiều cao, hình vuông, đậm hơn)
         SampleItemCheck.Name = "SampleItemCheck"
         SampleItemCheck.Parent = SampleItemBG
         SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
-        SampleItemCheck.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
-        SampleItemCheck.BackgroundTransparency = SelectedValues[value] and 0 or 1
+        SampleItemCheck.BackgroundTransparency = 1  -- Background trong suốt
         SampleItemCheck.Position = UDim2.new(1, -5, 0.5, 0)
-        SampleItemCheck.Size = UDim2.new(0, 18, 0, 18) -- 90% của 20px
-        
-        SampleItemCheckCorner.CornerRadius = UDim.new(0, 3)
-        SampleItemCheckCorner.Name = "SampleItemCheckCorner"
-        SampleItemCheckCorner.Parent = SampleItemCheck
-        
+        SampleItemCheck.Size = UDim2.new(0, 18, 0, 18)
+        SampleItemCheck.Image = "rbxassetid://4552505888"  -- ID hình ảnh bạn muốn
+        SampleItemCheck.ImageColor3 = getgenv().UIColor["Toggle Checked Color"]
+        SampleItemCheck.ImageTransparency = SelectedValues[value] and 0 or 1
+
         SampleItemButton.Name = "SampleItemButton"
         SampleItemButton.Parent = SampleItem
         SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1911,6 +1909,260 @@ end
     end
     
     return multiDropdownFunction
+end
+
+function sectionFunction:AddDropdownSection(idk, Setting)
+    Setting = Setting or {}
+    local Title = tostring(Setting.Text or Setting.Title or "Dropdown Section")
+    local List = Setting.Values or {}
+    local Default = Setting.Default or {}
+    local Callback = Setting.Callback or function() end
+    local Search = Setting.Search or false
+    
+    local DropdownFrame = Instance.new("Frame")
+    local Dropdownbg = Instance.new("Frame")
+    local Dropdowncorner = Instance.new("UICorner")
+    local Topdrop = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    local ImgDrop = Instance.new("ImageLabel")
+    local DropdownButton = Instance.new("TextButton")
+    local Dropdownlisttt = Instance.new("Frame")
+    local DropdownScroll = Instance.new("ScrollingFrame")
+    local ScrollContainer = Instance.new("Frame")
+    local ScrollContainerList = Instance.new("UIListLayout")
+    
+    DropdownFrame.Name = Title .. "DropdownSectionFrame"
+    DropdownFrame.Parent = Section
+    DropdownFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    DropdownFrame.BackgroundTransparency = 1.000
+    DropdownFrame.Position = UDim2.new(0, 0, 0.473684222, 0)
+    DropdownFrame.Size = UDim2.new(1, 0, 0, 25)
+    
+    Dropdownbg.Name = "Background1"
+    Dropdownbg.Parent = DropdownFrame
+    Dropdownbg.AnchorPoint = Vector2.new(0.5, 0.5)
+    Dropdownbg.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Dropdownbg.Size = UDim2.new(1, -10, 1, 0)
+    Dropdownbg.ClipsDescendants = true
+    Dropdownbg.BackgroundColor3 = getgenv().UIColor["Background 1 Color"]
+    Dropdownbg.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+    
+    Dropdowncorner.CornerRadius = UDim.new(0, 4)
+    Dropdowncorner.Name = "Dropdowncorner"
+    Dropdowncorner.Parent = Dropdownbg
+    
+    Topdrop.Name = "Background2"
+    Topdrop.Parent = Dropdownbg
+    Topdrop.Size = UDim2.new(1, 0, 0, 25)
+    Topdrop.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
+    Topdrop.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+    
+    UICorner.CornerRadius = UDim.new(0, 4)
+    UICorner.Parent = Topdrop
+    
+    local Dropdowntitle
+    if Search then
+        Dropdowntitle = Instance.new("TextBox")
+        Dropdowntitle.PlaceholderText = Title  -- DÙNG TITLE Ở ĐÂY
+        Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
+    else
+        Dropdowntitle = Instance.new("TextLabel")
+        Dropdowntitle.Text = Title  -- DÙNG TITLE Ở ĐÂY
+    end
+    
+    Dropdowntitle.Name = "TextColorPlaceholder"
+    Dropdowntitle.Parent = Topdrop
+    Dropdowntitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    Dropdowntitle.BackgroundTransparency = 1.000
+    Dropdowntitle.Position = UDim2.new(0, 10, 0, 0)
+    Dropdowntitle.Size = UDim2.new(1, -40, 1, 0)
+    Dropdowntitle.Font = Enum.Font.GothamBlack
+    Dropdowntitle.TextSize = 14.000
+    Dropdowntitle.TextXAlignment = Enum.TextXAlignment.Left
+    Dropdowntitle.ClipsDescendants = true
+    Dropdowntitle.TextColor3 = getgenv().UIColor["Text Color"]
+    
+    ImgDrop.Name = "ImgDrop"
+    ImgDrop.Parent = Topdrop
+    ImgDrop.AnchorPoint = Vector2.new(1, 0.5)
+    ImgDrop.BackgroundTransparency = 1.000
+    ImgDrop.BorderColor3 = Color3.fromRGB(27, 42, 53)
+    ImgDrop.Position = UDim2.new(1, -6, 0.5, 0)
+    ImgDrop.Size = UDim2.new(0, 15, 0, 15)
+    ImgDrop.Image = "rbxassetid://6954383209"
+    ImgDrop.ImageColor3 = getgenv().UIColor["Dropdown Icon Color"]
+    
+    DropdownButton.Name = "DropdownButton"
+    DropdownButton.Parent = Topdrop
+    DropdownButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    DropdownButton.BackgroundTransparency = 1.000
+    DropdownButton.Size = Search and UDim2.new(0, 30, 0, 30) or UDim2.new(1, 0, 1 , 0)
+    DropdownButton.Position = Search and UDim2.new(1, -35, 0, 0) or UDim2.new(0 , 0 , 0 , 0)
+    DropdownButton.Font = Enum.Font.GothamBold
+    DropdownButton.Text = ""
+    DropdownButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+    DropdownButton.TextSize = 14.000
+    
+    Dropdownlisttt.Name = "Dropdownlisttt"
+    Dropdownlisttt.Parent = Dropdownbg
+    Dropdownlisttt.BackgroundTransparency = 1.000
+    Dropdownlisttt.BorderSizePixel = 0
+    Dropdownlisttt.Position = UDim2.new(0, 0, 0, 25)
+    Dropdownlisttt.Size = UDim2.new(1, 0, 0, 0)
+    Dropdownlisttt.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    
+    DropdownScroll.Name = "DropdownScroll"
+    DropdownScroll.Parent = Dropdownlisttt
+    DropdownScroll.Active = true
+    DropdownScroll.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    DropdownScroll.BackgroundTransparency = 1.000
+    DropdownScroll.BorderSizePixel = 0
+    DropdownScroll.Size = UDim2.new(1, 0, 1, 0)
+    DropdownScroll.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+    DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    DropdownScroll.ScrollBarThickness = 5
+    DropdownScroll.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+    DropdownScroll.ScrollingEnabled = true
+    DropdownScroll.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+    
+    ScrollContainer.Name = "ScrollContainer"
+    ScrollContainer.Parent = DropdownScroll
+    ScrollContainer.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    ScrollContainer.BackgroundTransparency = 1.000
+    ScrollContainer.Position = UDim2.new(0, 5, 0, 5)
+    ScrollContainer.Size = UDim2.new(1, -15, 1, -5)
+    
+    ScrollContainerList.Name = "ScrollContainerList"
+    ScrollContainerList.Parent = ScrollContainer
+    ScrollContainerList.SortOrder = Enum.SortOrder.LayoutOrder
+    ScrollContainerList.Padding = UDim.new(0, 5)
+    
+    local isOpen = false
+    
+    -- Tạo internal section để chứa các control
+    local InternalSection = Instance.new("Frame")
+    InternalSection.Name = "InternalSection"
+    InternalSection.Parent = ScrollContainer
+    InternalSection.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    InternalSection.BackgroundTransparency = 1.000
+    InternalSection.Size = UDim2.new(1, 0, 0, 0)
+    InternalSection.AutomaticSize = Enum.AutomaticSize.Y
+    
+    local InternalList = Instance.new("UIListLayout")
+    InternalList.Name = "InternalList"
+    InternalList.Parent = InternalSection
+    InternalList.SortOrder = Enum.SortOrder.LayoutOrder
+    InternalList.Padding = UDim.new(0, 5)
+    
+    -- Search functionality
+    if Search then
+        Dropdowntitle:GetPropertyChangedSignal("Text"):Connect(function()
+            local searchText = string.lower(Dropdowntitle.Text)
+            -- Có thể thêm search functionality nếu cần
+        end)
+    end
+    
+    DropdownButton.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        
+        local listsize = isOpen and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 0)
+        local mainsize = isOpen and UDim2.new(1, 0, 0, 230) or UDim2.new(1, 0, 0, 25)
+        local DropCRotation = isOpen and 90 or 0
+        
+        TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+            Size = listsize
+        }):Play()
+        TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+            Size = mainsize
+        }):Play()
+        TweenService:Create(ImgDrop, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+            Rotation = DropCRotation
+        }):Play()
+    end)
+    
+    ScrollContainerList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 10 + ScrollContainerList.AbsoluteContentSize.Y + 5)
+    end)
+    
+    InternalList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        -- Tự động điều chỉnh kích thước dropdown dựa trên content
+        local contentHeight = math.min(InternalList.AbsoluteContentSize.Y + 10, 300) -- Giới hạn max height
+        local listsize = isOpen and UDim2.new(1, 0, 0, contentHeight) or UDim2.new(1, 0, 0, 0)
+        local mainsize = isOpen and UDim2.new(1, 0, 0, contentHeight + 25) or UDim2.new(1, 0, 0, 25)
+        
+        if isOpen then
+            TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+                Size = listsize
+            }):Play()
+            TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+                Size = mainsize
+            }):Play()
+        end
+    end)
+    
+    -- Tạo dropdown section functions
+    local dropdownSectionFunction = {}
+    
+    -- Thêm Button
+    function dropdownSectionFunction:AddButton(Setting)
+        return sectionFunction.AddButton(InternalSection, Setting)
+    end
+    
+    -- Thêm Toggle
+    function dropdownSectionFunction:AddToggle(Setting)
+        return sectionFunction.AddToggle(InternalSection, Setting)
+    end
+    
+    -- Thêm Label
+    function dropdownSectionFunction:AddLabel(text)
+        return sectionFunction.AddLabel(InternalSection, text)
+    end
+    
+    -- Thêm Slider
+    function dropdownSectionFunction:AddSlider(Setting)
+        return sectionFunction.AddSlider(InternalSection, Setting)
+    end
+    
+    -- Thêm Keybind
+    function dropdownSectionFunction:AddKeyBind(Setting, Callback)
+        return sectionFunction.AddKeyBind(InternalSection, Setting, Callback)
+    end
+    
+    -- Thêm Textbox
+    function dropdownSectionFunction:AddInput(Setting)
+        return sectionFunction.AddInput(InternalSection, Setting)
+    end
+    
+    -- Thêm Dropdown
+    function dropdownSectionFunction:AddDropdown(Setting)
+        return sectionFunction.AddDropdown(InternalSection, Setting)
+    end
+    
+    -- Thêm MultiDropdown
+    function dropdownSectionFunction:AddMultiDropdown(Setting)
+        return sectionFunction.AddMultiDropdown(InternalSection, Setting)
+    end
+    
+    -- Function để mở/đóng dropdown section
+    function dropdownSectionFunction:SetOpen(state)
+        if state ~= isOpen then
+            DropdownButton.MouseButton1Click:Fire()
+        end
+    end
+    
+    function dropdownSectionFunction:GetOpen()
+        return isOpen
+    end
+    
+    function dropdownSectionFunction:SetTitle(newTitle)
+        if Search then
+            Dropdowntitle.PlaceholderText = newTitle
+        else
+            Dropdowntitle.Text = newTitle
+        end
+    end
+    
+    return dropdownSectionFunction
 end
 			
 			function sectionFunction:AddDropdown(idk, Setting)
