@@ -1,14 +1,14 @@
 
-if getgenv().Crystal then 
-	if game.CoreGui:FindFirstChild("Crystal Hub GUI") then
+if getgenv().Nousigi then 
+	if game.CoreGui:FindFirstChild("Nousigi Hub GUI") then
 		for i, v in ipairs(game.CoreGui:GetChildren()) do
-			if string.find(v.Name,  "Crystal Hub") then
+			if string.find(v.Name,  "Nousigi Hub") then
 				v:Destroy()
 			end
 		end
 	end
 end
-getgenv().Crystal = true
+getgenv().Nousigi = true
 
 local DisableAnimation = game.Players.LocalPlayer.PlayerGui:FindFirstChild('TouchGui')
 
@@ -139,7 +139,7 @@ end
 
 Library_Function.Gui = Instance.new('ScreenGui')
 Library_Function.Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Library_Function.Gui.Name = 'Crystal Hub GUI'
+Library_Function.Gui.Name = 'Nousigi Hub GUI'
 Library_Function.Gui.Enabled = false
 
 getgenv().ReadyForGuiLoaded = false
@@ -155,11 +155,11 @@ end)
 
 Library_Function.NotiGui = Instance.new('ScreenGui')
 Library_Function.NotiGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Library_Function.NotiGui.Name = 'Crystal Hub Notification'
+Library_Function.NotiGui.Name = 'Nousigi Hub Notification'
 
 Library_Function.HideGui = Instance.new('ScreenGui')
 Library_Function.HideGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Library_Function.HideGui.Name = 'Crystal Hub Btn'
+Library_Function.HideGui.Name = 'Nousigi Hub Btn'
 
 
 local btnHide = Instance.new('TextButton', Library_Function.HideGui) 
@@ -198,9 +198,9 @@ Library.ToggleUI = function()
 	TweenService:Create(btnHideFrame, TweenInfo.new(DisableAnimation and 0 or .25), {
 		BackgroundTransparency = getgenv().UIToggled and 0 or .25
 	}):Play()
-	if game.CoreGui:FindFirstChild("Crystal Hub GUI") then
+	if game.CoreGui:FindFirstChild("Nousigi Hub GUI") then
 		for a, b in ipairs(game.CoreGui:GetChildren()) do
-			if b.Name == "Crystal Hub GUI" then
+			if b.Name == "Nousigi Hub GUI" then
 				b.Enabled = getgenv().UIToggled
 			end
 		end
@@ -208,9 +208,9 @@ Library.ToggleUI = function()
 end
 
 Library.DestroyUI = function()
-	if game.CoreGui:FindFirstChild("Crystal Hub GUI") then
+	if game.CoreGui:FindFirstChild("Nousigi Hub GUI") then
 		for i, v in ipairs(game.CoreGui:GetChildren()) do
-			if string.find(v.Name,  "Crystal Hub") then
+			if string.find(v.Name,  "Nousigi Hub") then
 				v:Destroy()
 			end
 		end
@@ -378,7 +378,7 @@ local libCreateNoti = function(Setting)
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
     TextLabelNoti.Text = "<font color=\"rgb(" .. color .. ")\">" .. TitleNameMain .. "</font> " .. getgenv().TitleNameNoti
-
+    
 	TextLabelNoti.Name = "TextLabelNoti"
 	TextLabelNoti.Parent = Topnoti
 	TextLabelNoti.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
@@ -487,6 +487,10 @@ function Library:CreateWindow(Setting)
     local TitleNameMain = Setting.Title or "Lonely Hub"
     getgenv().MainDesc = Setting.Desc or Setting.Subtitle or ""
     
+    -- Đảm bảo không nil
+    if not TitleNameMain then TitleNameMain = "Lonely Hub" end
+    if not getgenv().MainDesc then getgenv().MainDesc = "" end
+    
     if Setting.Image then
         getgenv().UIColor["Logo Image"] = Setting.Image
     end
@@ -541,7 +545,7 @@ function Library:CreateWindow(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-    TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">" .. TitleNameMain .. "</font> " .. getgenv().MainDesc
+    TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">" .. tostring(TitleNameMain or "Lonely Hub") .. "</font> " .. tostring(getgenv().MainDesc or "")
 	MainContainer = Instance.new("ImageLabel")
 	MainContainer.Name = "MainContainer"
 	MainContainer.Parent = Main
