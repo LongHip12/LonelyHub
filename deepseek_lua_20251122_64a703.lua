@@ -1187,14 +1187,83 @@ function Library:CreateWindow(Setting)
 
 			local sectionFunction = {}
 
+
+
+function sectionFunction:AddButton(Setting, Callback)
+    local Title = Setting.Text or Setting.Title or ""  -- THÊM Setting.Title
+    local Callback = Setting.Func or Setting.Callback or function() end  -- THÊM Setting.Callback
+
+    local ButtonFrame = Instance.new("Frame")
+    local ButtonBG = Instance.new("Frame")
+    local ButtonCorner = Instance.new("UICorner")
+    local ButtonTitle = Instance.new("TextLabel")
+    local Button = Instance.new("TextButton")
+    
+    ButtonFrame.Name = Title .. 'dot'
+    ButtonFrame.Parent = Section
+    ButtonFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    ButtonFrame.BackgroundTransparency = 1.000
+    ButtonFrame.Position = UDim2.new(0, 0, 0.300000012, 0)
+    ButtonFrame.Size = UDim2.new(1, 0, 0, 25)
+    
+    ButtonBG.Name = "ButtonBG"
+    ButtonBG.Parent = ButtonFrame
+    ButtonBG.AnchorPoint = Vector2.new(0.5, 0.5)
+    ButtonBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ButtonBG.Size = UDim2.new(1, -10, 1, 0)
+    ButtonBG.BackgroundColor3 = getgenv().UIColor["Button Color"]
+    ButtonBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+    
+    ButtonCorner.CornerRadius = UDim.new(0, 4)
+    ButtonCorner.Name = "ButtonCorner"
+    ButtonCorner.Parent = ButtonBG
+    
+    ButtonTitle.Name = "TextColor"
+    ButtonTitle.Parent = ButtonBG
+    ButtonTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    ButtonTitle.BackgroundTransparency = 1.000
+    ButtonTitle.Position = UDim2.new(0, 10, 0, 0)
+    ButtonTitle.Size = UDim2.new(1, -10, 1, 0)
+    ButtonTitle.Font = Enum.Font.GothamBlack
+    ButtonTitle.RichText = true
+    ButtonTitle.Text = Title
+    ButtonTitle.TextSize = 14.000
+    ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
+    ButtonTitle.TextColor3 = getgenv().UIColor["Text Color"]
+    ButtonTitle.TextStrokeTransparency = getgenv().UIColor["Text Stroke Transparency"]
+    
+    Button.Name = "Button"
+    Button.Parent = ButtonBG
+    Button.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    Button.BackgroundTransparency = 1.000
+    Button.Size = UDim2.new(1, 0, 1, 0)
+    Button.Font = Enum.Font.SourceSans
+    Button.Text = ""
+    Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+    Button.TextSize = 14.000
+    
+    Button.MouseButton1Down:Connect(function()
+        Callback()
+    end)
+    
+    local f = {}
+    function f:SetTitle(vl)
+        ButtonTitle.Text = vl
+    end
+    return f
+end
+
 function sectionFunction:AddToggle(idk,Setting)
-    local Title = tostring(Setting.Title or "")
+    -- THÊM DÒNG NÀY ĐỂ FIX LỖI
+    Setting = Setting or {}
+    
+    local Title = tostring(Setting.Text or Setting.Title or "")
     local Description = Setting.Description or Setting.Desc or ""
     local Default = Setting.Default
     if Default == nil then
         Default = false
     end
-    local Callback = Setting.Callback
+    local Callback = Setting.Callback or function() end  -- THÊM DEFAULT CALLBACK
     local ToggleFrame = Instance.new("Frame")
     local TogFrame1 = Instance.new("Frame")
     local checkbox = Instance.new("ImageLabel")
@@ -1366,71 +1435,6 @@ function sectionFunction:AddToggle(idk,Setting)
     
     return toggleFunction
 end
-
-function sectionFunction:AddButton(Setting, Callback)
-    local Title = Setting.Text or Setting.Title or ""  -- THÊM Setting.Title
-    local Callback = Setting.Func or Setting.Callback or function() end  -- THÊM Setting.Callback
-
-    local ButtonFrame = Instance.new("Frame")
-    local ButtonBG = Instance.new("Frame")
-    local ButtonCorner = Instance.new("UICorner")
-    local ButtonTitle = Instance.new("TextLabel")
-    local Button = Instance.new("TextButton")
-    
-    ButtonFrame.Name = Title .. 'dot'
-    ButtonFrame.Parent = Section
-    ButtonFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    ButtonFrame.BackgroundTransparency = 1.000
-    ButtonFrame.Position = UDim2.new(0, 0, 0.300000012, 0)
-    ButtonFrame.Size = UDim2.new(1, 0, 0, 25)
-    
-    ButtonBG.Name = "ButtonBG"
-    ButtonBG.Parent = ButtonFrame
-    ButtonBG.AnchorPoint = Vector2.new(0.5, 0.5)
-    ButtonBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ButtonBG.Size = UDim2.new(1, -10, 1, 0)
-    ButtonBG.BackgroundColor3 = getgenv().UIColor["Button Color"]
-    ButtonBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-    
-    ButtonCorner.CornerRadius = UDim.new(0, 4)
-    ButtonCorner.Name = "ButtonCorner"
-    ButtonCorner.Parent = ButtonBG
-    
-    ButtonTitle.Name = "TextColor"
-    ButtonTitle.Parent = ButtonBG
-    ButtonTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    ButtonTitle.BackgroundTransparency = 1.000
-    ButtonTitle.Position = UDim2.new(0, 10, 0, 0)
-    ButtonTitle.Size = UDim2.new(1, -10, 1, 0)
-    ButtonTitle.Font = Enum.Font.GothamBlack
-    ButtonTitle.RichText = true
-    ButtonTitle.Text = Title
-    ButtonTitle.TextSize = 14.000
-    ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
-    ButtonTitle.TextColor3 = getgenv().UIColor["Text Color"]
-    ButtonTitle.TextStrokeTransparency = getgenv().UIColor["Text Stroke Transparency"]
-    
-    Button.Name = "Button"
-    Button.Parent = ButtonBG
-    Button.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    Button.BackgroundTransparency = 1.000
-    Button.Size = UDim2.new(1, 0, 1, 0)
-    Button.Font = Enum.Font.SourceSans
-    Button.Text = ""
-    Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-    Button.TextSize = 14.000
-    
-    Button.MouseButton1Down:Connect(function()
-        Callback()
-    end)
-    
-    local f = {}
-    function f:SetTitle(vl)
-        ButtonTitle.Text = vl
-    end
-    return f
-end
-
 			function sectionFunction:AddLabel(text)
 				local Title = text
 				local LabelFrame = Instance.new("Frame")
@@ -1480,7 +1484,7 @@ end
 			end
 			
 			function sectionFunction:AddDropdown(idk, Setting)
-				local Title = tostring(Setting.Title)
+				local Title = tostring(Setting.Text)
 				local List = Setting.Values
 				local Search = Setting.Search or false
 				local Selected = Setting.Selected or false
