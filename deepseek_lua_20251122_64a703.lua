@@ -1188,7 +1188,7 @@ function Library:CreateWindow(Setting)
 			local sectionFunction = {}
 
 function sectionFunction:AddToggle(idk,Setting)
-    local Title = tostring(Setting.Text or Setting.Title or "")
+    local Title = tostring(Setting.Title or "")
     local Description = Setting.Description or Setting.Desc or ""
     local Default = Setting.Default
     if Default == nil then
@@ -1480,7 +1480,7 @@ end
 			end
 			
 			function sectionFunction:AddDropdown(idk, Setting)
-				local Title = tostring(Setting.Text)
+				local Title = tostring(Setting.Title)
 				local List = Setting.Values
 				local Search = Setting.Search or false
 				local Selected = Setting.Selected or false
