@@ -13,35 +13,35 @@ getgenv().Crystal = true
 local DisableAnimation = game.Players.LocalPlayer.PlayerGui:FindFirstChild('TouchGui')
 
 local T1UIColor = {
-	["Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Border Color"] = Color3.fromRGB(255, 80, 80),
 	["Click Effect Color"] = Color3.fromRGB(230, 230, 230),
 	["Setting Icon Color"] = Color3.fromRGB(230, 230, 230),
 	["Logo Image"] = "rbxassetid://135300070242371",
 	["Search Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Search Icon Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Search Icon Highlight Color"] = Color3.fromRGB(255, 80, 80),
 	["GUI Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Placeholder Text Color"] = Color3.fromRGB(178, 178, 178),
-	["Title Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Title Text Color"] = Color3.fromRGB(255, 80, 80),
 	["Background Main Color"] = Color3.fromRGB(43, 43, 43),
 	["Background 1 Color"] = Color3.fromRGB(30,30,30),
 	["Background 1 Transparency"] = 0.5,
 	["Background 2 Color"] = Color3.fromRGB(90, 90, 90),
 	["Background 3 Color"] = Color3.fromRGB(53, 53, 53),
 	["Background Image"] = "",
-	["Page Selected Color"] = Color3.fromRGB(212, 161, 255),
-	["Section Text Color"] = Color3.fromRGB(212, 161, 255),
-	["Section Underline Color"] = Color3.fromRGB(212, 161, 255),
-	["Toggle Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Page Selected Color"] = Color3.fromRGB(255, 80, 80),
+	["Section Text Color"] = Color3.fromRGB(255, 80, 80),
+	["Section Underline Color"] = Color3.fromRGB(255, 80, 80),
+	["Toggle Border Color"] = Color3.fromRGB(255, 80, 80),
 	["Toggle Checked Color"] = Color3.fromRGB(230, 230, 230),
 	["Toggle Desc Color"] = Color3.fromRGB(185, 185, 185),
-	["Button Color"] = Color3.fromRGB(212, 161, 255),
+	["Button Color"] = Color3.fromRGB(255, 80, 80),
 	["Label Color"] = Color3.fromRGB(255, 46, 46),
 	["Dropdown Icon Color"] = Color3.fromRGB(230, 230, 230),
-	["Dropdown Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Dropdown Selected Color"] = Color3.fromRGB(255, 80, 80),
 	["Dropdown Selected Check Color"] = Color3.fromRGB(219, 64, 64),
-	["Textbox Highlight Color"] = Color3.fromRGB(212, 161, 255),
-	["Box Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Textbox Highlight Color"] = Color3.fromRGB(255, 80, 80),
+	["Box Highlight Color"] = Color3.fromRGB(255, 80, 80),
 	["Slider Line Color"] = Color3.fromRGB(75, 75, 75),
 	["Slider Highlight Color"] = Color3.fromRGB(194, 25, 25),
 	["Tween Animation 1 Speed"] = DisableAnimation and 0 or 0.25,
@@ -53,35 +53,35 @@ local T1UIColor = {
 
 
 getgenv().UIColor = {
-	["Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Border Color"] = Color3.fromRGB(255, 80, 80),
 	["Click Effect Color"] = Color3.fromRGB(230, 230, 230),
 	["Setting Icon Color"] = Color3.fromRGB(230, 230, 230),
 	["Logo Image"] = "rbxassetid://135300070242371",
 	["Search Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Search Icon Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Search Icon Highlight Color"] = Color3.fromRGB(255, 80, 80),
 	["GUI Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Placeholder Text Color"] = Color3.fromRGB(178, 178, 178),
-	["Title Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Title Text Color"] = Color3.fromRGB(255, 80, 80),
 	["Background Main Color"] = Color3.fromRGB(43, 43, 43),
 	["Background 1 Color"] = Color3.fromRGB(30,30,30),
 	["Background 1 Transparency"] = 0.5,
 	["Background 2 Color"] = Color3.fromRGB(90, 90, 90),
 	["Background 3 Color"] = Color3.fromRGB(53, 53, 53),
 	["Background Image"] = "",
-	["Page Selected Color"] = Color3.fromRGB(212, 161, 255),
-	["Section Text Color"] = Color3.fromRGB(212, 161, 255),
-	["Section Underline Color"] = Color3.fromRGB(212, 161, 255),
-	["Toggle Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Page Selected Color"] = Color3.fromRGB(255, 80, 80),
+	["Section Text Color"] = Color3.fromRGB(255, 80, 80),
+	["Section Underline Color"] = Color3.fromRGB(255, 80, 80),
+	["Toggle Border Color"] = Color3.fromRGB(255, 80, 80),
 	["Toggle Checked Color"] = Color3.fromRGB(230, 230, 230),
 	["Toggle Desc Color"] = Color3.fromRGB(185, 185, 185),
-	["Button Color"] = Color3.fromRGB(212, 161, 255),
+	["Button Color"] = Color3.fromRGB(255, 80, 80),
 	["Label Color"] = Color3.fromRGB(255, 46, 46),
 	["Dropdown Icon Color"] = Color3.fromRGB(230, 230, 230),
-	["Dropdown Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Dropdown Selected Color"] = Color3.fromRGB(255, 80, 80),
 	["Dropdown Selected Check Color"] = Color3.fromRGB(219, 64, 64),
-	["Textbox Highlight Color"] = Color3.fromRGB(212, 161, 255),
-	["Box Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Textbox Highlight Color"] = Color3.fromRGB(255, 80, 80),
+	["Box Highlight Color"] = Color3.fromRGB(255, 80, 80),
 	["Slider Line Color"] = Color3.fromRGB(75, 75, 75),
 	["Slider Highlight Color"] = Color3.fromRGB(194, 25, 25),
 	["Tween Animation 1 Speed"] = DisableAnimation and 0 or 0.25,
@@ -377,8 +377,8 @@ local libCreateNoti = function(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-	TextLabelNoti.Text = "<font color=\"rgb(" .. color .. ")\">Nawy Hub</font> " .. getgenv().TitleNameNoti
-	
+    TextLabelNoti.Text = "<font color=\"rgb(" .. color .. ")\">" .. TitleNameMain .. "</font> " .. getgenv().TitleNameNoti
+
 	TextLabelNoti.Name = "TextLabelNoti"
 	TextLabelNoti.Parent = Topnoti
 	TextLabelNoti.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
@@ -484,20 +484,13 @@ function Library:Notify(Setting, bypass)
 end
 
 function Library:CreateWindow(Setting)
-
-	local TitleNameMain = Setting.Title or "by LongHip12"  -- THÊM TITLE
-	getgenv().MainDesc = Setting.Desc or Setting.Subtitle or ""  -- THÊM SUBTITLE
-	
-	-- THÊM ẢNH NẾU CÓ
-	if Setting.Image then
-		getgenv().UIColor["Logo Image"] = Setting.Image
-	end
-	
-	-- THÊM MÀU TITLE NẾU CÓ
-	if Setting.TitleColor then
-		getgenv().UIColor["Title Text Color"] = Setting.TitleColor
-	end
-
+    local TitleNameMain = Setting.Title or "Lonely Hub"
+    getgenv().MainDesc = Setting.Desc or Setting.Subtitle or ""
+    
+    if Setting.Image then
+        getgenv().UIColor["Logo Image"] = Setting.Image
+    end
+    
 	local djtmemay = false
 	cac = false
 
@@ -548,8 +541,7 @@ function Library:CreateWindow(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-	TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">@noguchi.hyuga</font> " .. getgenv().MainDesc or " - Blox Fruit"
-
+    TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">" .. TitleNameMain .. "</font> " .. getgenv().MainDesc
 	MainContainer = Instance.new("ImageLabel")
 	MainContainer.Name = "MainContainer"
 	MainContainer.Parent = Main
@@ -970,7 +962,7 @@ function Library:CreateWindow(Setting)
 
 		local pageFunction = {}
 
-		function pageFunction:CreateSection(Section_Name, Toggleable, SectionGap, SectionColor)
+		function pageFunction:AddSection(Section_Name, Toggleable, SectionGap, SectionColor)
 			local Toggleable = Toggleable or false
 			local Section = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
@@ -2141,7 +2133,7 @@ function Library:CreateWindow(Setting)
 				end
 				return dropdownFunction
 			end
-			function sectionFunction.CreateBind(Setting, Callback)
+			function sectionFunction.AddBind(Setting, Callback)
 				local TitleText = tostring(Setting.Title) or ""
 				local KeyCode = Setting.Key
 				local Default = Setting.Default or Setting.Key
