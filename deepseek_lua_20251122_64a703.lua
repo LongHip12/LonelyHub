@@ -1257,18 +1257,16 @@ function sectionFunction:AddToggle(idk,Setting)
     -- THÊM DÒNG NÀY ĐỂ FIX LỖI
     Setting = Setting or {}
     
-    local Title = tostring(Setting.Text or Setting.Title or "")
+    local Title = tostring(Setting.Text or Setting.Title or "Toggle")
     local Description = Setting.Description or Setting.Desc or ""
-    local Default = Setting.Default
-    if Default == nil then
-        Default = false
-    end
-    local Callback = Setting.Callback or function() end  -- THÊM DEFAULT CALLBACK
+    local Default = Setting.Default or false
+    local Callback = Setting.Callback or function() end
+    
     local ToggleFrame = Instance.new("Frame")
     local TogFrame1 = Instance.new("Frame")
     local checkbox = Instance.new("ImageLabel")
     local check = Instance.new("ImageLabel")
-    local ToggleDescription = Instance.new("TextLabel")  -- Sửa thành ToggleDescription
+    local ToggleDescription = Instance.new("TextLabel")
     local ToggleTitle = Instance.new("TextLabel")
     local ToggleBg = Instance.new("Frame")
     local ToggleCorner = Instance.new("UICorner")
@@ -1308,12 +1306,12 @@ function sectionFunction:AddToggle(idk,Setting)
     dot.Parent = checkbox
     dot.AnchorPoint = Vector2.new(0.5, 0.5)
     dot.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
-    dot.Size = UDim2.new(0, 4, 0, 4)  -- Size nhỏ 4x4
+    dot.Size = UDim2.new(0, 4, 0, 4)
     dot.Position = UDim2.new(0.5, 0, 0.5, 0)
-    dot.BackgroundTransparency = Default and 1 or 0  -- Ẩn khi bật, hiện khi tắt
+    dot.BackgroundTransparency = Default and 1 or 0
     
     local dotCorner = Instance.new("UICorner")
-    dotCorner.CornerRadius = UDim.new(1, 0)  -- Bo tròn thành hình tròn
+    dotCorner.CornerRadius = UDim.new(1, 0)
     dotCorner.Parent = dot
     
     check.Name = "check"
@@ -1322,30 +1320,27 @@ function sectionFunction:AddToggle(idk,Setting)
     check.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
     check.BackgroundTransparency = 1.000
     check.Position = UDim2.new(0, 0, 1, 0)
+    check.Size = UDim2.new(0, 0, 0, 0)
     check.Image = "rbxassetid://4555411759"
     check.ImageColor3 = getgenv().UIColor["Toggle Checked Color"]
     
     local cac = 5
-    if Description then  -- Sửa thành Description
+    if Description ~= "" then
         cac = 0
-        ToggleDescription.Name = "ToggleDescription"  -- Sửa thành ToggleDescription
+        ToggleDescription.Name = "ToggleDescription"
         ToggleDescription.Parent = TogFrame1
         ToggleDescription.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
         ToggleDescription.BackgroundTransparency = 1.000
         ToggleDescription.Position = UDim2.new(0, 15, 0, 20)
         ToggleDescription.Size = UDim2.new(1, -50, 0, 0)
         ToggleDescription.Font = Enum.Font.GothamBlack
-        ToggleDescription.Text = Description  -- Sửa thành Description
+        ToggleDescription.Text = Description
         ToggleDescription.TextSize = 13.000
         ToggleDescription.TextWrapped = true
         ToggleDescription.TextXAlignment = Enum.TextXAlignment.Left
         ToggleDescription.RichText = true
         ToggleDescription.AutomaticSize = Enum.AutomaticSize.Y
         ToggleDescription.TextColor3 = getgenv().UIColor["Toggle Desc Color"]
-    else
-        if ToggleDescription then
-            ToggleDescription.Text = ''
-        end
     end
     
     ToggleTitle.Name = "TextColor"
@@ -1395,8 +1390,8 @@ function sectionFunction:AddToggle(idk,Setting)
     
     local function ChangeStage(val)
         local csize = val and UDim2.new(1, -4, 1, -4) or UDim2.new(0, 0, 0, 0)
-        local pos = val and UDim2.new(.5, 0, .5, 0) or UDim2.new(0, 0, 1, 0)
-        local apos = val and Vector2.new(.5, .5) or Vector2.new(0, 1)
+        local pos = val and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0, 0, 1, 0)
+        local apos = val and Vector2.new(0.5, 0.5) or Vector2.new(0, 1)
         
         -- HIỆU ỨNG CHO CHECK
         game.TweenService:Create(check, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
@@ -1405,7 +1400,7 @@ function sectionFunction:AddToggle(idk,Setting)
             AnchorPoint = apos
         }):Play()
         
-        -- HIỆU ỨNG CHO DẤU CHẤM: Ẩn khi bật, hiện khi tắt
+        -- HIỆU ỨNG CHO DẤU CHẤM
         game.TweenService:Create(dot, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
             BackgroundTransparency = val and 1 or 0
         }):Play()
@@ -1413,24 +1408,26 @@ function sectionFunction:AddToggle(idk,Setting)
         Callback(val)
     end
     
-    if Callback then
-        ChangeStage(Default)
-    end
+    ChangeStage(Default)
     
     local function ButtonClick()
         Default = not Default
         ChangeStage(Default)
     end
     
-    ToggleButton.MouseButton1Down:Connect(function()
+    ToggleButton.MouseButton1Click:Connect(function()
         ButtonClick()
     end)
     
     local toggleFunction = {}
-    function toggleFunction.SetStage(value)
+    function toggleFunction:SetStage(value)
         if value ~= Default then
             ButtonClick()
         end
+    end
+    
+    function toggleFunction:GetStage()
+        return Default
     end
     
     return toggleFunction
@@ -2273,10 +2270,10 @@ end
 				end
 				return dropdownFunction
 			end
-
-            function sectionFunction:AddButton(Setting)
-    local Title = Setting.Text
-    local Callback = Setting.Callback
+function sectionFunction:AddButton(Setting)
+    -- THÊM KIỂM TRA
+    Setting = Setting or {}
+    local Title = tostring(Setting.Title or "Button")
     
     local RowFrame = Instance.new("Frame")
     local RowBG = Instance.new("Frame")
@@ -2293,7 +2290,7 @@ end
     local UIScale = Instance.new("UIScale")
     local Button = Instance.new("TextButton")
 
-    RowFrame.Name = Title .. "_Row"
+    RowFrame.Name = tostring(Title) .. "_Row"
     RowFrame.Parent = Section
     RowFrame.BackgroundColor3 = Color3.fromRGB(163,162,165)
     RowFrame.BackgroundTransparency = 1
