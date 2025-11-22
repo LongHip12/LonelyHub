@@ -2133,7 +2133,7 @@ function Library:CreateWindow(Setting)
 				end
 				return dropdownFunction
 			end
-			function sectionFunction.AddBind(Setting, Callback)
+			function sectionFunction:AddKeyBind(Setting, Callback)
 				local TitleText = tostring(Setting.Title) or ""
 				local KeyCode = Setting.Key
 				local Default = Setting.Default or Setting.Key
@@ -2539,10 +2539,10 @@ function Library:CreateWindow(Setting)
 		end
         local pagefunc = {}
         function pagefunc:AddLeftGroupbox(name)
-            return pageFunction:CreateSection(name)
+            return pageFunction:AddSection(name)
         end
         function pagefunc:AddRightGroupbox(name)
-            return pageFunction:CreateSection(name)
+            return pageFunction:AddSection(name)
         end
 		return pagefunc
 
