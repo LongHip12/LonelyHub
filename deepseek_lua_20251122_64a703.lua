@@ -2176,54 +2176,80 @@ function sectionFunction:AddDropdownSection(Setting)
     
     -- Tạo dropdown section functions
     local dropdownSectionFunction = {}
-    -- ✅ CODE ĐÃ SỬA (TẠO TRONG DROPDOWN)
+
 function dropdownSectionFunction:AddButton(Setting)
-    local btn = sectionFunction:AddButton(Setting)
-    btn.Element.Parent = InternalSection  -- Chuyển vào dropdown
-    return btn
+    local btnFunc = sectionFunction:AddButton(Setting)
+    -- Tìm Frame của button và chuyển parent
+    local buttonFrame = Section:FindFirstChild(Setting.Title .. "Button")
+    if buttonFrame then
+        buttonFrame.Parent = InternalSection
+    end
+    return btnFunc
 end
 
 function dropdownSectionFunction:AddToggle(Setting)
-    local toggle = sectionFunction:AddToggle(Setting)
-    toggle.Element.Parent = InternalSection
-    return toggle
+    local toggleFunc = sectionFunction:AddToggle(Setting)
+    local toggleFrame = Section:FindFirstChild("ToggleFrame")
+    if toggleFrame then
+        toggleFrame.Parent = InternalSection
+    end
+    return toggleFunc
 end
 
 function dropdownSectionFunction:AddLabel(text)
-    local label = sectionFunction:AddLabel(text)
-    label.Element.Parent = InternalSection
-    return label
+    local labelFunc = sectionFunction:AddLabel(text)
+    local labelFrame = Section:FindFirstChild("LabelFrame")
+    if labelFrame then
+        labelFrame.Parent = InternalSection
+    end
+    return labelFunc
 end
 
 function dropdownSectionFunction:AddSlider(Setting)
-    local slider = sectionFunction:AddSlider(Setting)
-    slider.Element.Parent = InternalSection
-    return slider
+    local sliderFunc = sectionFunction:AddSlider(Setting)
+    local sliderFrame = Section:FindFirstChild((Setting.Title or "Slider") .. "buda")
+    if sliderFrame then
+        sliderFrame.Parent = InternalSection
+    end
+    return sliderFunc
 end
 
 function dropdownSectionFunction:AddKeyBind(Setting, Callback)
-    local keybind = sectionFunction:AddKeyBind(Setting, Callback)
-    keybind.Element.Parent = InternalSection
-    return keybind
+    local keybindFunc = sectionFunction:AddKeyBind(Setting, Callback)
+    local bindFrame = Section:FindFirstChild((Setting.Title or "KeyBind") .. "bguvl")
+    if bindFrame then
+        bindFrame.Parent = InternalSection
+    end
+    return keybindFunc
 end
 
 function dropdownSectionFunction:AddInput(Setting)
-    local input = sectionFunction:AddInput(Setting)
-    input.Element.Parent = InternalSection
-    return input
+    local inputFunc = sectionFunction:AddInput(Setting)
+    local inputFrame = Section:FindFirstChild("BoxFrame")
+    if inputFrame then
+        inputFrame.Parent = InternalSection
+    end
+    return inputFunc
 end
 
 function dropdownSectionFunction:AddDropdown(Setting)
-    local dropdown = sectionFunction:AddDropdown(Setting)
-    dropdown.Element.Parent = InternalSection
-    return dropdown
+    local dropdownFunc = sectionFunction:AddDropdown(Setting)
+    local dropdownFrame = Section:FindFirstChild((Setting.Title or "Dropdown") .. "DropdownFrame")
+    if dropdownFrame then
+        dropdownFrame.Parent = InternalSection
+    end
+    return dropdownFunc
 end
 
 function dropdownSectionFunction:AddMultiDropdown(Setting)
-    local multiDropdown = sectionFunction:AddMultiDropdown(Setting)
-    multiDropdown.Element.Parent = InternalSection
-    return multiDropdown
+    local multiDropdownFunc = sectionFunction:AddMultiDropdown(Setting)
+    local multiDropdownFrame = Section:FindFirstChild((Setting.Title or "MultiDropdown") .. "MultiDropdownFrame")
+    if multiDropdownFrame then
+        multiDropdownFrame.Parent = InternalSection
+    end
+    return multiDropdownFunc
 end
+
 
     
     function dropdownSectionFunction:SetOpen(state)
