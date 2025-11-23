@@ -2176,39 +2176,55 @@ function sectionFunction:AddDropdownSection(Setting)
     
     -- Tạo dropdown section functions
     local dropdownSectionFunction = {}
-    
-    -- Sửa lại các function để truyền đúng tham số
-    function dropdownSectionFunction:AddButton(Setting)
-        return self:AddButton(Setting)
-    end
-    
-    function dropdownSectionFunction:AddToggle(Setting)
-        return self:AddToggle(Setting)
-    end
-    
-    function dropdownSectionFunction:AddLabel(text)
-        return self:AddLabel(text)
-    end
-    
-    function dropdownSectionFunction:AddSlider(Setting)
-        return self:AddSlider(Setting)
-    end
-    
-    function dropdownSectionFunction:AddKeyBind(Setting, Callback)
-        return self:AddKeyBind(Setting, Callback)
-    end
-    
-    function dropdownSectionFunction:AddInput(Setting)
-        return self:AddInput(Setting)
-    end
-    
-    function dropdownSectionFunction:AddDropdown(Setting)
-        return self:AddDropdown(Setting)
-    end
-    
-    function dropdownSectionFunction:AddMultiDropdown(Setting)
-        return self:AddMultiDropdown(Setting)
-    end
+    -- ✅ CODE ĐÃ SỬA (TẠO TRONG DROPDOWN)
+function dropdownSectionFunction:AddButton(Setting)
+    local btn = sectionFunction:AddButton(Setting)
+    btn.Element.Parent = InternalSection  -- Chuyển vào dropdown
+    return btn
+end
+
+function dropdownSectionFunction:AddToggle(Setting)
+    local toggle = sectionFunction:AddToggle(Setting)
+    toggle.Element.Parent = InternalSection
+    return toggle
+end
+
+function dropdownSectionFunction:AddLabel(text)
+    local label = sectionFunction:AddLabel(text)
+    label.Element.Parent = InternalSection
+    return label
+end
+
+function dropdownSectionFunction:AddSlider(Setting)
+    local slider = sectionFunction:AddSlider(Setting)
+    slider.Element.Parent = InternalSection
+    return slider
+end
+
+function dropdownSectionFunction:AddKeyBind(Setting, Callback)
+    local keybind = sectionFunction:AddKeyBind(Setting, Callback)
+    keybind.Element.Parent = InternalSection
+    return keybind
+end
+
+function dropdownSectionFunction:AddInput(Setting)
+    local input = sectionFunction:AddInput(Setting)
+    input.Element.Parent = InternalSection
+    return input
+end
+
+function dropdownSectionFunction:AddDropdown(Setting)
+    local dropdown = sectionFunction:AddDropdown(Setting)
+    dropdown.Element.Parent = InternalSection
+    return dropdown
+end
+
+function dropdownSectionFunction:AddMultiDropdown(Setting)
+    local multiDropdown = sectionFunction:AddMultiDropdown(Setting)
+    multiDropdown.Element.Parent = InternalSection
+    return multiDropdown
+end
+
     
     function dropdownSectionFunction:SetOpen(state)
         if state ~= isOpen then
@@ -3350,15 +3366,24 @@ table.insert(getgenv().AllControls, controlData)
 			
 			
             function sectionFunction:AddInput(idk, Setting)
-                Setting = Setting or {}
-                local TitleText = tostring(Setting.Text or Setting.Title or "")
-                local Placeholder = tostring(Setting.Placeholder) or ""
-                local Default = Setting.Default or ""
-                local Number_Only = Setting.Numeric or false
-                local Callback = Setting.Callback or function() end
-				local BoxFrame = Instance.new("Frame")
-				local BoxCorner = Instance.new("UICorner")
-				local BoxBG = Instance.new("Frame")
+    Setting = Setting or {}
+    -- ✅ SỬA LỖI: ĐẢM BẢO TITLE KHÔNG BỊ NIL
+    local TitleText = tostring(Setting.Text or Setting.Title or "Input")
+    local Placeholder = tostring(Setting.Placeholder or "")
+    local Default = Setting.Default or ""
+    local Number_Only = Setting.Numeric or false
+    local Callback = Setting.Callback or function() end
+    
+    -- ✅ KIỂM TRA THÊM (optional)
+    if TitleText == "" or TitleText == "nil" then
+        TitleText = "Input"
+    end
+    
+    -- Phần còn lại của code giữ nguyên...
+    local BoxFrame = Instance.new("Frame")
+    local BoxCorner = Instance.new("UICorner")
+    local BoxBG = Instance.new("Frame")
+    -- ... rest of your code
 				local ButtonCorner = Instance.new("UICorner")
 				local Boxtitle = Instance.new("TextLabel")
 				local BoxCor = Instance.new("Frame")
