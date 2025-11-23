@@ -1911,12 +1911,9 @@ end
     return multiDropdownFunction
 end
 
-function sectionFunction:AddDropdownSection(idk, Setting)
+function sectionFunction:AddDropdownSection(Setting)
     Setting = Setting or {}
     local Title = tostring(Setting.Text or Setting.Title or "Dropdown Section")
-    local List = Setting.Values or {}
-    local Default = Setting.Default or {}
-    local Callback = Setting.Callback or function() end
     local Search = Setting.Search or false
     
     local DropdownFrame = Instance.new("Frame")
@@ -1963,11 +1960,11 @@ function sectionFunction:AddDropdownSection(idk, Setting)
     local Dropdowntitle
     if Search then
         Dropdowntitle = Instance.new("TextBox")
-        Dropdowntitle.PlaceholderText = Title  -- DÙNG TITLE Ở ĐÂY
+        Dropdowntitle.PlaceholderText = Title
         Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
     else
         Dropdowntitle = Instance.new("TextLabel")
-        Dropdowntitle.Text = Title  -- DÙNG TITLE Ở ĐÂY
+        Dropdowntitle.Text = Title
     end
     
     Dropdowntitle.Name = "TextColorPlaceholder"
@@ -2054,14 +2051,6 @@ function sectionFunction:AddDropdownSection(idk, Setting)
     InternalList.SortOrder = Enum.SortOrder.LayoutOrder
     InternalList.Padding = UDim.new(0, 5)
     
-    -- Search functionality
-    if Search then
-        Dropdowntitle:GetPropertyChangedSignal("Text"):Connect(function()
-            local searchText = string.lower(Dropdowntitle.Text)
-            -- Có thể thêm search functionality nếu cần
-        end)
-    end
-    
     DropdownButton.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         
@@ -2085,8 +2074,7 @@ function sectionFunction:AddDropdownSection(idk, Setting)
     end)
     
     InternalList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        -- Tự động điều chỉnh kích thước dropdown dựa trên content
-        local contentHeight = math.min(InternalList.AbsoluteContentSize.Y + 10, 300) -- Giới hạn max height
+        local contentHeight = math.min(InternalList.AbsoluteContentSize.Y + 10, 300)
         local listsize = isOpen and UDim2.new(1, 0, 0, contentHeight) or UDim2.new(1, 0, 0, 0)
         local mainsize = isOpen and UDim2.new(1, 0, 0, contentHeight + 25) or UDim2.new(1, 0, 0, 25)
         
@@ -2103,47 +2091,39 @@ function sectionFunction:AddDropdownSection(idk, Setting)
     -- Tạo dropdown section functions
     local dropdownSectionFunction = {}
     
-    -- Thêm Button
+    -- Sửa lại các function để truyền đúng tham số
     function dropdownSectionFunction:AddButton(Setting)
-        return sectionFunction.AddButton(InternalSection, Setting)
+        return self:AddButton(Setting)
     end
     
-    -- Thêm Toggle
     function dropdownSectionFunction:AddToggle(Setting)
-        return sectionFunction.AddToggle(InternalSection, Setting)
+        return self:AddToggle(Setting)
     end
     
-    -- Thêm Label
     function dropdownSectionFunction:AddLabel(text)
-        return sectionFunction.AddLabel(InternalSection, text)
+        return self:AddLabel(text)
     end
     
-    -- Thêm Slider
     function dropdownSectionFunction:AddSlider(Setting)
-        return sectionFunction.AddSlider(InternalSection, Setting)
+        return self:AddSlider(Setting)
     end
     
-    -- Thêm Keybind
     function dropdownSectionFunction:AddKeyBind(Setting, Callback)
-        return sectionFunction.AddKeyBind(InternalSection, Setting, Callback)
+        return self:AddKeyBind(Setting, Callback)
     end
     
-    -- Thêm Textbox
     function dropdownSectionFunction:AddInput(Setting)
-        return sectionFunction.AddInput(InternalSection, Setting)
+        return self:AddInput(Setting)
     end
     
-    -- Thêm Dropdown
     function dropdownSectionFunction:AddDropdown(Setting)
-        return sectionFunction.AddDropdown(InternalSection, Setting)
+        return self:AddDropdown(Setting)
     end
     
-    -- Thêm MultiDropdown
     function dropdownSectionFunction:AddMultiDropdown(Setting)
-        return sectionFunction.AddMultiDropdown(InternalSection, Setting)
+        return self:AddMultiDropdown(Setting)
     end
     
-    -- Function để mở/đóng dropdown section
     function dropdownSectionFunction:SetOpen(state)
         if state ~= isOpen then
             DropdownButton.MouseButton1Click:Fire()
