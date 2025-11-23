@@ -51,6 +51,7 @@ local T1UIColor = {
 
 getgenv().UIColor = T1UIColor
 getgenv().UIToggled = false
+getgenv().AllControls = {}
 
 local currcolor = {}
 local Library = {};
@@ -554,7 +555,7 @@ function Library:CreateWindow(Setting)
 	TextLabelMain.Parent = TopMain
 	TextLabelMain.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
 	TextLabelMain.BackgroundTransparency = 1.000
-	TextLabelMain.Position = UDim2.new(0, 220, 0, 0)
+	TextLabelMain.Position = UDim2.new(0, 35, 0, 0)
 	TextLabelMain.Size = UDim2.new(1, -35, 1, 0)
 	TextLabelMain.Font = Enum.Font.GothamBold
 	TextLabelMain.RichText = true
@@ -1554,7 +1555,7 @@ table.insert(getgenv().AllControls, controlData)
 end
 
 			function sectionFunction:AddLabel(text)
-                local Title = text or ""t
+                local Title = text or ""
 				local LabelFrame = Instance.new("Frame")
 				local LabelBG = Instance.new("Frame")
 				local LabelCorner = Instance.new("UICorner")
@@ -3477,7 +3478,7 @@ function sectionFunction:AddSlider(Setting)
     local maxValue = tonumber(Setting.Max) or 100
     local Precise = Setting.Precise or false
     local DefaultValue = tonumber(Setting.Default) or minValue
-    local Callback = Setting.Callback or function() endk
+    local Callback = Setting.Callback or function() end
     local SizeChia = 400;
     
     -- THÊM KIỂM TRA BẢO VỆ
