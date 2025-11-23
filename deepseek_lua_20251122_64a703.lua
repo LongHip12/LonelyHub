@@ -657,21 +657,21 @@ function Library:CreateWindow(Setting)
 	SearchIcon.Image = "rbxassetid://8154282545"
 	SearchIcon.ImageColor3 = Color3.fromRGB(240, 240, 230)
 
-	SearchBox.Name = "SearchBox"
-	SearchBox.Parent = PageSearch
-	SearchBox.Active = true
-	SearchBox.BackgroundColor3 = Color3.fromRGB(163, 162, 165)
-	SearchBox.BackgroundTransparency = 1
-	SearchBox.CursorPosition = -1
-	SearchBox.Position = UDim2.new(0, 30, 0, 0)
-	SearchBox.Size = UDim2.new(1, -30, 1, 0)
-	SearchBox.Font = Enum.Font.GothamBold
-	SearchBox.PlaceholderColor3 = Color3.fromRGB(170, 170, 160)
-	SearchBox.PlaceholderText = "Search section or Function..."
-	SearchBox.Text = ""
-	SearchBox.TextColor3 = Color3.fromRGB(235, 235, 230)
-	SearchBox.TextSize = 14
-	SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+    SearchBox.Name = "SearchBox"
+    SearchBox.Parent = PageSearch
+    SearchBox.Active = true
+    SearchBox.BackgroundColor3 = Color3.fromRGB(163, 162, 165)
+    SearchBox.BackgroundTransparency = 1
+    SearchBox.CursorPosition = -1
+    SearchBox.Position = UDim2.new(0, 30, 0, 0)
+    SearchBox.Size = UDim2.new(1, -30, 1, 0)
+    SearchBox.Font = Enum.Font.GothamBold
+    SearchBox.PlaceholderColor3 = Color3.fromRGB(170, 170, 160)
+    SearchBox.PlaceholderText = "Search section or Function..."
+    SearchBox.Text = ""
+    SearchBox.TextColor3 = Color3.fromRGB(235, 235, 230)
+    SearchBox.TextSize = 14
+    SearchBox.TextXAlignment = Enum.TextXAlignment.Left
 
 	MainPage.Name = "MainPage"
 	MainPage.Parent = Concacmain
@@ -707,6 +707,70 @@ function Library:CreateWindow(Setting)
 	Shadow.ScaleType = Enum.ScaleType.Slice
 	Shadow.SliceCenter = Rect.new(24, 24, 276, 276)
 
+-- Thêm biến toàn cục để lưu các controls
+getgenv().AllControls = {}
+
+-- Function để search toàn bộ tab
+local function GlobalSearch(searchText)
+    searchText = string.lower(searchText)
+    
+    if searchText == "" then
+        -- Hiển thị tất cả
+        for _, control in pairs(getgenv().AllControls) do
+            control.TabButton.Visible = true
+            control.Section.Visible = true
+            control.Element.Visible = true
+        end
+        -- Hiển thị tất cả tab
+        for _, tab in pairs(ControlList:GetChildren()) do
+            if not tab:IsA('UIListLayout') then
+                tab.Visible = true
+            end
+        end
+        return
+    end
+    
+    -- Ẩn tất cả trước
+    for _, control in pairs(getgenv().AllControls) do
+        control.Section.Visible = false
+        control.Element.Visible = false
+    end
+    
+    -- Ẩn tất cả tab
+    for _, tab in pairs(ControlList:GetChildren()) do
+        if not tab:IsA('UIListLayout') then
+            tab.Visible = false
+        end
+    end
+    
+    -- Tìm và hiển thị các controls phù hợp
+    local foundTabs = {}
+    for _, control in pairs(getgenv().AllControls) do
+        local elementName = string.lower(control.Name or "")
+        local sectionName = string.lower(control.SectionName or "")
+        
+        if string.find(elementName, searchText) or string.find(sectionName, searchText) then
+            control.Section.Visible = true
+            control.Element.Visible = true
+            control.TabButton.Visible = true
+            foundTabs[control.TabName] = true
+        end
+    end
+    
+    -- Hiển thị các tab có kết quả
+    for tabName, _ in pairs(foundTabs) do
+        for _, tab in pairs(ControlList:GetChildren()) do
+            if not tab:IsA('UIListLayout') and string.find(tab.Name, tabName) then
+                tab.Visible = true
+            end
+        end
+    end
+end
+
+-- Kết nối sự kiện search
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    GlobalSearch(SearchBox.Text)
+end)
 	local Main_Function = {}
 
 	local LayoutOrderBut = -1
@@ -1312,6 +1376,16 @@ function sectionFunction:AddButton(Setting)
         ButtonTitle.Text = vl
     end
 
+local controlData = {
+    Name = Title,
+    Section = ButtonFrame,
+    Element = ButtonFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
+
     return buttonFunction
 end
 
@@ -1327,7 +1401,6 @@ function sectionFunction:AddToggle(idk,Setting)
     local TogFrame1 = Instance.new("Frame")
     local checkbox = Instance.new("ImageLabel")
     local dot = Instance.new("Frame")
-    local fillFrame = Instance.new("Frame")
     local ToggleDescription = Instance.new("TextLabel")
     local ToggleTitle = Instance.new("TextLabel")
     local ToggleBg = Instance.new("Frame")
@@ -1358,22 +1431,11 @@ function sectionFunction:AddToggle(idk,Setting)
     checkbox.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
     checkbox.BackgroundTransparency = 1.000
     checkbox.Position = UDim2.new(1, -5, 0.5, 3)
-    checkbox.Size = UDim2.new(0, 25, 0, 25)
+    checkbox.Size = UDim2.new(0, 23, 0, 23)
     checkbox.Image = "rbxassetid://4552505888"
     checkbox.ImageColor3 = getgenv().UIColor["Toggle Border Color"]
     
-    -- FILL FRAME (gần bằng cạnh)
-    fillFrame.Name = "FillFrame"
-    fillFrame.Parent = checkbox
-    fillFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    fillFrame.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
-    fillFrame.Size = Default and UDim2.new(1, -2, 1, -2) or UDim2.new(0, 0, 0, 0)
-    fillFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    fillFrame.BackgroundTransparency = Default and 0 or 1
-    fillFrame.ZIndex = 2
-    
-    -- DOT Ở GIỮA
-    dot.Name = "Dot"
+    dot.Name = "check"
     dot.Parent = checkbox
     dot.AnchorPoint = Vector2.new(0.5, 0.5)
     dot.BackgroundColor3 = getgenv().UIColor["Toggle Checked Color"]
@@ -1448,13 +1510,8 @@ function sectionFunction:AddToggle(idk,Setting)
     ToggleList.Padding = UDim.new(0, 5)
     
     local function ChangeStage(val)
-        local fillSize = val and UDim2.new(1, -2, 1, -2) or UDim2.new(0, 0, 0, 0)
-        local fillTransparency = val and 0 or 1
         local dotTransparency = val and 1 or 0
         
-        -- KHÔNG CÓ ANIMATION - SET TRỰC TIẾP
-        fillFrame.Size = fillSize
-        fillFrame.BackgroundTransparency = fillTransparency
         dot.BackgroundTransparency = dotTransparency
         
         Callback(val)
@@ -1483,11 +1540,21 @@ function sectionFunction:AddToggle(idk,Setting)
         return Default
     end
     
+local controlData = {
+    Name = Title,
+    Section = ToggleFrame,
+    Element = ToggleFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
+
     return toggleFunction
 end
 
 			function sectionFunction:AddLabel(text)
-				local Title = text
+                local Title = text or ""t
 				local LabelFrame = Instance.new("Frame")
 				local LabelBG = Instance.new("Frame")
 				local LabelCorner = Instance.new("UICorner")
@@ -1531,10 +1598,19 @@ end
 				function labelFunction.SetColor(color)
 					LabelTitle.TextColor3 = color
 				end
+				local controlData = {
+    Name = Title,
+    Section = LabelFrame,
+    Element = LabelFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
 				return labelFunction
 			end
 			
-			function sectionFunction:AddMultiDropdown(idk, Setting)
+function sectionFunction:AddMultiDropdown(idk, Setting)
     Setting = Setting or {}
     local Title = tostring(Setting.Text or Setting.Title or "Multi Dropdown")
     local List = Setting.Values or {}
@@ -1907,7 +1983,16 @@ end
         refreshList()
         updateTitle()
     end
-    
+local controlData = {
+    Name = Title,
+    Section = DropdownFrame,
+    Element = DropdownFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
+
     return multiDropdownFunction
 end
 
@@ -1915,7 +2000,7 @@ function sectionFunction:AddDropdownSection(Setting)
     Setting = Setting or {}
     local Title = tostring(Setting.Text or Setting.Title or "Dropdown Section")
     local Search = Setting.Search or false
-    
+  
     local DropdownFrame = Instance.new("Frame")
     local Dropdownbg = Instance.new("Frame")
     local Dropdowncorner = Instance.new("UICorner")
@@ -2146,12 +2231,13 @@ function sectionFunction:AddDropdownSection(Setting)
 end
 			
 			function sectionFunction:AddDropdown(idk, Setting)
-				local Title = tostring(Setting.Text)
-				local List = Setting.Values
-				local Search = Setting.Search or false
-				local Selected = Setting.Selected or false
-				local Slider = Setting.Slider or false
-				local SliderRelease = Setting.SliderRelease or false
+                Setting = Setting or {}
+                local Title = tostring(Setting.Text or Setting.Title or "Dropdown")
+                local List = Setting.Values or {}
+                local Search = Setting.Search or false
+                local Selected = Setting.Selected or false
+                local Slider = Setting.Slider or false
+                local SliderRelease = Setting.SliderRelease or false
 				local Default = (function ()
                     if Setting.Default then
                         if type(Setting.Default) == "number" then
@@ -2162,8 +2248,8 @@ end
                     end
                     return nil
                 end)()
-				local Callback = Setting.Callback
-				local pairs = Setting.SortPairs or pairs
+				local Callback = Setting.Callback or function() end
+                local pairs = Setting.SortPairs or pairs
 				local DropdownFrame = Instance.new("Frame")
 				local Dropdownbg = Instance.new("Frame")
 				local Dropdowncorner = Instance.new("UICorner")
@@ -2933,14 +3019,23 @@ end
 						Dropdowntitle.Text = Title .. ': '
 					end
 				end
+				local controlData = {
+    Name = Title,
+    Section = DropdownFrame,
+    Element = DropdownFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
 				return dropdownFunction
 			end
-function sectionFunction:AddButton(Setting)
+function sectionFunction:AddButton2(Setting)
     Setting = Setting or {}
     local Title = tostring(Setting.Title or "Button")
     local Description = Setting.Description or Setting.Desc or ""
     local Callback = Setting.Callback or function() end
-
+    
     local ButtonFrame = Instance.new("Frame")
     local TogFrame1 = Instance.new("Frame")
     local ButtonBG = Instance.new("Frame")
@@ -3143,12 +3238,12 @@ function sectionFunction:AddButton(Setting)
 end
 
 			function sectionFunction:AddKeyBind(Setting, Callback)
-				local TitleText = tostring(Setting.Title) or ""
-				local KeyCode = Setting.Key
-				local Default = Setting.Default or Setting.Key
-				local Type = tostring(Default):match("UserInputType") and "UserInputType" or "KeyCode"
-				local Callback = Callback or function()
-				end
+                Setting = Setting or {}
+                local TitleText = tostring(Setting.Title or "")
+                local KeyCode = Setting.Key or Enum.KeyCode.Unknown
+                local Default = Setting.Default or Setting.Key or Enum.KeyCode.Unknown
+                local Type = tostring(Default):match("UserInputType") and "UserInputType" or "KeyCode"
+                Callback = Callback or function() end
 				KeyCode = tostring(KeyCode):gsub("Enum.UserInputType.", "")
 				KeyCode = tostring(KeyCode):gsub("Enum.KeyCode.", "")
 				local BindFrame = Instance.new("Frame")
@@ -3240,16 +3335,26 @@ end
 						Callback(Default);
 					end;
 				end);
+				local controlData = {
+    Name = TitleText,
+    Section = BindFrame,
+    Element = BindFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
 			end
 			
 			
 			
-			function sectionFunction:AddInput(idk, Setting)
+            function sectionFunction:AddInput(idk, Setting)
+                Setting = Setting or {}
                 local TitleText = tostring(Setting.Text or Setting.Title or "")
                 local Placeholder = tostring(Setting.Placeholder) or ""
-                local Default = Setting.Default or ""  -- ĐỔI THÀNH ""
+                local Default = Setting.Default or ""
                 local Number_Only = Setting.Numeric or false
-                local Callback = Setting.Callback
+                local Callback = Setting.Callback or function() end
 				local BoxFrame = Instance.new("Frame")
 				local BoxCorner = Instance.new("UICorner")
 				local BoxBG = Instance.new("Frame")
@@ -3352,18 +3457,27 @@ end
 					Boxxx.Text = Value
 					Callback(Value)
 				end
+				local controlData = {
+    Name = TitleText,
+    Section = BoxFrame,
+    Element = BoxFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
 				return textbox_function;
 			end
 			
 			
-			
 function sectionFunction:AddSlider(Setting)
+    Setting = Setting or {}
     local TitleText = tostring(Setting.Text or Setting.Title or "")
     local minValue = tonumber(Setting.Min) or 0
     local maxValue = tonumber(Setting.Max) or 100
     local Precise = Setting.Precise or false
-    local DefaultValue = tonumber(Setting.Default) or minValue  -- SỬA: dùng minValue thay vì 0
-    local Callback = Setting.Callback
+    local DefaultValue = tonumber(Setting.Default) or minValue
+    local Callback = Setting.Callback or function() endk
     local SizeChia = 400;
     
     -- THÊM KIỂM TRA BẢO VỆ
@@ -3601,6 +3715,16 @@ function sectionFunction:AddSlider(Setting)
         GetSliderValue(Value)
     end
     
+local controlData = {
+    Name = TitleText,
+    Section = SliderFrame,
+    Element = SliderFrame,
+    SectionName = Section.Name,
+    TabName = Page_Name,
+    TabButton = PageName
+}
+table.insert(getgenv().AllControls, controlData)
+
     return slider_function
 end
 
