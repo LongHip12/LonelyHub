@@ -554,7 +554,7 @@ function Library:CreateWindow(Setting)
 	TextLabelMain.Parent = TopMain
 	TextLabelMain.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
 	TextLabelMain.BackgroundTransparency = 1.000
-	TextLabelMain.Position = UDim2.new(0, 35, 0, 0)
+	TextLabelMain.Position = UDim2.new(0, 220, 0, 0)
 	TextLabelMain.Size = UDim2.new(1, -35, 1, 0)
 	TextLabelMain.Font = Enum.Font.GothamBold
 	TextLabelMain.RichText = true
