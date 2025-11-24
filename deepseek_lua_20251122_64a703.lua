@@ -1630,7 +1630,7 @@ table.insert(getgenv().AllControls, controlData)
 			
 function sectionFunction:AddMultiDropdown(idk, Setting)
     Setting = Setting or {}
-    local Title = tostring(Setting.Text or Setting.Title or "Multi Dropdown")
+    local Title = tostring(Setting.Title or Setting.Text or "Multi Dropdown")
     local List = Setting.Values or {}
     local Default = Setting.Default or {}
     local Callback = Setting.Callback or function() end
@@ -1702,20 +1702,8 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
     local Sel = Instance.new("Folder", Dropdowntitle)
     Sel.Name = "SelectedValues"
     
-    if not Selected then
-        if Search then
-            Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-            Dropdowntitle.PlaceholderText = Title .. ': None'
-        else
-            Dropdowntitle.Text = Title .. ': None'
-        end
-    else
-        if Search then
-            Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-            Dropdowntitle.PlaceholderText = Title .. ': None'
-        else
-            Dropdowntitle.Text = Title .. ': None'
-        end
+    if Search then
+        Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
     end
     Dropdowntitle.TextColor3 = getgenv().UIColor["Text Color"]
     
@@ -1871,9 +1859,8 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
             elseif Slider then
                 table.insert(searchtable, string.lower(v['Title']))
             else
-                if typeof(v) == "string" then
-                    table.insert(searchtable, string.lower(v))
-                end
+                local valueString = tostring(v)
+                table.insert(searchtable, string.lower(valueString))
             end
         end
         
@@ -2275,154 +2262,155 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
                 end)
             end
         else
+            -- FIX: XÓA điều kiện typeof(v) == "string", xử lý MỌI giá trị
             for i, v in ipairs(ListNew) do
-                if typeof(v) == "string" then
-                    local SampleItem = Instance.new("Frame")
-                    local SampleItemCorner = Instance.new("UICorner")
-                    local SampleItemBG = Instance.new("Frame")
-                    local SampleItemBGCorner = Instance.new("UICorner")
-                    local SampleItemTitle = Instance.new("TextLabel")
-                    local SampleItemCheck = Instance.new("ImageButton")
-                    local SampleItemButton = Instance.new("TextButton")
-                    
-                    SampleItem.Name = string.lower(v)
-                    SampleItem.Parent = ScrollContainer
-                    SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                    SampleItem.BackgroundTransparency = 1.000
-                    SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
-                    SampleItem.LayoutOrder = 1
-                    SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
-                    SampleItem.Size = UDim2.new(1, 0, 0, 25)
-                    
-                    SampleItemCorner.CornerRadius = UDim.new(0, 4)
-                    SampleItemCorner.Name = "SampleItemCorner"
-                    SampleItemCorner.Parent = SampleItem
-                    
-                    SampleItemBG.Name = "SampleItemBG"
-                    SampleItemBG.Parent = SampleItem
-                    SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
-                    SampleItemBG.BackgroundColor3 = SelectedValues[v] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
-                    SampleItemBG.BackgroundTransparency = SelectedValues[v] and 0.5 or 1
-                    SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
-                    SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-                    SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
-                    
-                    SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
-                    SampleItemBGCorner.Name = "SampleItemBGCorner"
-                    SampleItemBGCorner.Parent = SampleItemBG
-                    
-                    SampleItemTitle.Name = "SampleItemTitle"
-                    SampleItemTitle.Parent = SampleItemBG
-                    SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    SampleItemTitle.BackgroundTransparency = 1.000
-                    SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
-                    SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
-                    SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
-                    SampleItemTitle.Font = Enum.Font.GothamBlack
-                    SampleItemTitle.Text = v
-                    SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    SampleItemTitle.TextSize = 14.000
-                    SampleItemTitle.TextStrokeTransparency = 0.500
-                    SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
-                    
-                    SampleItemCheck.Name = "SampleItemCheck"
-                    SampleItemCheck.Parent = SampleItemBG
-                    SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
-                    SampleItemCheck.BackgroundTransparency = 1.000
-                    SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
-                    SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
-                    SampleItemCheck.ZIndex = 2
-                    SampleItemCheck.Image = "rbxassetid://3926305904"
-                    SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
-                    SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
-                    SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
-                    SampleItemCheck.ImageTransparency = SelectedValues[v] and 0 or 1
-                    
-                    SampleItemButton.Name = "SampleItemButton"
-                    SampleItemButton.Parent = SampleItem
-                    SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    SampleItemButton.BackgroundTransparency = 1.000
-                    SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                    SampleItemButton.BorderSizePixel = 0
-                    SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
-                    SampleItemButton.Font = Enum.Font.SourceSans
-                    SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
-                    SampleItemButton.TextSize = 14.000
-                    SampleItemButton.TextTransparency = 1.000
-                    
-                    SampleItemButton.MouseEnter:Connect(function()
-                        if SelectedValues[v] then
-                            return
-                        end
-                        TweenService:Create(
-                            SampleItemBG,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                            }
-                        ):Play()
-                        TweenService:Create(
-                            SampleItemBG,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                BackgroundTransparency = 0.7
-                            }
-                        ):Play()
-                    end)
-                    
-                    SampleItemButton.MouseLeave:Connect(function()
-                        if SelectedValues[v] then
-                            return
-                        end
-                        TweenService:Create(
-                            SampleItemBG,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                            }
-                        ):Play()
-                        TweenService:Create(
-                            SampleItemBG,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                BackgroundTransparency = 1
-                            }
-                        ):Play()
-                    end)
-                    
-                    SampleItemButton.MouseButton1Click:Connect(function()
-                        SelectedValues[v] = not SelectedValues[v]
-                        
-                        TweenService:Create(
-                            SampleItemCheck,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                ImageTransparency = SelectedValues[v] and 0 or 1
-                            }
-                        ):Play()
-                        
-                        TweenService:Create(
-                            SampleItemBG,
-                            TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-                                BackgroundColor3 = SelectedValues[v] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255),
-                                BackgroundTransparency = SelectedValues[v] and 0.5 or 1
-                            }
-                        ):Play()
-                        
-                        updateTitle()
-                        
-                        local selectedArray = {}
-                        for val, isSel in pairs(SelectedValues) do
-                            if isSel then
-                                table.insert(selectedArray, val)
-                            end
-                        end
-                        
-                        if Callback then
-                            Callback(selectedArray)
-                        end
-                    end)
-                    
-                    if SelectedValues[v] then
-                        SampleItemBG.BackgroundTransparency = 0.5
-                        SampleItemBG.BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
-                        SampleItem.LayoutOrder = 0
+                local valueString = tostring(v)
+                
+                local SampleItem = Instance.new("Frame")
+                local SampleItemCorner = Instance.new("UICorner")
+                local SampleItemBG = Instance.new("Frame")
+                local SampleItemBGCorner = Instance.new("UICorner")
+                local SampleItemTitle = Instance.new("TextLabel")
+                local SampleItemCheck = Instance.new("ImageButton")
+                local SampleItemButton = Instance.new("TextButton")
+                
+                SampleItem.Name = string.lower(valueString)
+                SampleItem.Parent = ScrollContainer
+                SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                SampleItem.BackgroundTransparency = 1.000
+                SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
+                SampleItem.LayoutOrder = 1
+                SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
+                SampleItem.Size = UDim2.new(1, 0, 0, 25)
+                
+                SampleItemCorner.CornerRadius = UDim.new(0, 4)
+                SampleItemCorner.Name = "SampleItemCorner"
+                SampleItemCorner.Parent = SampleItem
+                
+                SampleItemBG.Name = "SampleItemBG"
+                SampleItemBG.Parent = SampleItem
+                SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
+                SampleItemBG.BackgroundColor3 = SelectedValues[valueString] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+                SampleItemBG.BackgroundTransparency = SelectedValues[valueString] and 0.5 or 1
+                SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
+                SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+                SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
+                
+                SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
+                SampleItemBGCorner.Name = "SampleItemBGCorner"
+                SampleItemBGCorner.Parent = SampleItemBG
+                
+                SampleItemTitle.Name = "SampleItemTitle"
+                SampleItemTitle.Parent = SampleItemBG
+                SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                SampleItemTitle.BackgroundTransparency = 1.000
+                SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
+                SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
+                SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
+                SampleItemTitle.Font = Enum.Font.GothamBlack
+                SampleItemTitle.Text = valueString  -- HIỆN VALUE
+                SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+                SampleItemTitle.TextSize = 14.000
+                SampleItemTitle.TextStrokeTransparency = 0.500
+                SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
+                
+                SampleItemCheck.Name = "SampleItemCheck"
+                SampleItemCheck.Parent = SampleItemBG
+                SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
+                SampleItemCheck.BackgroundTransparency = 1.000
+                SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
+                SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
+                SampleItemCheck.ZIndex = 2
+                SampleItemCheck.Image = "rbxassetid://3926305904"
+                SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+                SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
+                SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
+                SampleItemCheck.ImageTransparency = SelectedValues[valueString] and 0 or 1
+                
+                SampleItemButton.Name = "SampleItemButton"
+                SampleItemButton.Parent = SampleItem
+                SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                SampleItemButton.BackgroundTransparency = 1.000
+                SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                SampleItemButton.BorderSizePixel = 0
+                SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
+                SampleItemButton.Font = Enum.Font.SourceSans
+                SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
+                SampleItemButton.TextSize = 14.000
+                SampleItemButton.TextTransparency = 1.000
+                
+                SampleItemButton.MouseEnter:Connect(function()
+                    if SelectedValues[valueString] then
+                        return
                     end
+                    TweenService:Create(
+                        SampleItemBG,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                        }
+                    ):Play()
+                    TweenService:Create(
+                        SampleItemBG,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            BackgroundTransparency = 0.7
+                        }
+                    ):Play()
+                end)
+                
+                SampleItemButton.MouseLeave:Connect(function()
+                    if SelectedValues[valueString] then
+                        return
+                    end
+                    TweenService:Create(
+                        SampleItemBG,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                        }
+                    ):Play()
+                    TweenService:Create(
+                        SampleItemBG,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            BackgroundTransparency = 1
+                        }
+                    ):Play()
+                end)
+                
+                SampleItemButton.MouseButton1Click:Connect(function()
+                    SelectedValues[valueString] = not SelectedValues[valueString]
+                    
+                    TweenService:Create(
+                        SampleItemCheck,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            ImageTransparency = SelectedValues[valueString] and 0 or 1
+                        }
+                    ):Play()
+                    
+                    TweenService:Create(
+                        SampleItemBG,
+                        TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+                            BackgroundColor3 = SelectedValues[valueString] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255),
+                            BackgroundTransparency = SelectedValues[valueString] and 0.5 or 1
+                        }
+                    ):Play()
+                    
+                    updateTitle()
+                    
+                    local selectedArray = {}
+                    for val, isSel in pairs(SelectedValues) do
+                        if isSel then
+                            table.insert(selectedArray, val)
+                        end
+                    end
+                    
+                    if Callback then
+                        Callback(selectedArray)
+                    end
+                end)
+                
+                if SelectedValues[valueString] then
+                    SampleItemBG.BackgroundTransparency = 0.5
+                    SampleItemBG.BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+                    SampleItem.LayoutOrder = 0
                 end
             end
         end
@@ -2435,6 +2423,7 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
         end)
     end
     
+    -- GỌI updateTitle() để hiển thị ban đầu
     updateTitle()
     
     if Callback then
@@ -2560,6 +2549,7 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
 
     return multiDropdownFunction
 end
+
 
 function sectionFunction:AddDropdownSection(Setting)
     Setting = Setting or {}
