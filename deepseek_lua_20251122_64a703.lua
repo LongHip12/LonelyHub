@@ -763,15 +763,24 @@ local function GlobalSearch(searchText)
     
     -- Tìm và hiển thị các controls phù hợp
     local foundTabs = {}
+    local foundSections = {} -- THÊM: Lưu các section có kết quả
+    
     for _, control in pairs(getgenv().AllControls) do
         local elementName = string.lower(control.Name or "")
         local sectionName = string.lower(control.SectionName or "")
         
         if string.find(elementName, searchText) or string.find(sectionName, searchText) then
-            control.Section.Visible = true
             control.Element.Visible = true
             control.TabButton.Visible = true
             foundTabs[control.TabName] = true
+            foundSections[control.Section] = true -- ĐÁNH DẤU SECTION CÓ KẾT QUẢ
+        end
+    end
+    
+    -- HIỆN CÁC SECTION CÓ KẾT QUẢ
+    for section, _ in pairs(foundSections) do
+        if section and section.Parent then
+            section.Visible = true
         end
     end
     
@@ -1266,8 +1275,997 @@ end)
 					}):Play()
 				end
 			end)
-
 			local sectionFunction = {}
+
+
+			function sectionFunction:AddDropdown(idk, Setting)
+                Setting = Setting or {}
+                local Title = tostring(Setting.Text or Setting.Title or "Dropdown")
+                local List = Setting.Values or {}
+                local Search = Setting.Search or false
+                local Selected = Setting.Selected or false
+                local Slider = Setting.Slider or false
+                local SliderRelease = Setting.SliderRelease or false
+                local Multi = Setting.Multi or false -- THÊM MULTI MODE
+                
+                -- XỬ LÝ DEFAULT CHO MULTI MODE
+                local Default
+                local SelectedValues = {}
+                
+                if Multi then
+                    Default = Setting.Default or {}
+                    if type(Default) == "string" then
+                        Default = {Default}
+                    elseif type(Default) == "number" then
+                        Default = {List[Default]}
+                    end
+                    for _, value in pairs(Default) do
+                        if table.find(List, value) then
+                            SelectedValues[value] = true
+                        end
+                    end
+                else
+                    Default = (function ()
+                        if Setting.Default then
+                            if type(Setting.Default) == "number" then
+                                return List[Setting.Default]
+                            elseif type(Setting.Default) == "string" then
+                                return Setting.Default
+                            end
+                        end
+                        return nil
+                    end)()
+                end
+                
+				local Callback = Setting.Callback or function() end
+                local pairs = Setting.SortPairs or pairs
+				local DropdownFrame = Instance.new("Frame")
+				local Dropdownbg = Instance.new("Frame")
+				local Dropdowncorner = Instance.new("UICorner")
+				local Topdrop = Instance.new("Frame")
+				local UICorner = Instance.new("UICorner")
+				local ImgDrop = Instance.new("ImageLabel")
+				local DropdownButton = Instance.new("TextButton")
+				local Dropdownlisttt = Instance.new("Frame")
+				local DropdownScroll = Instance.new("ScrollingFrame")
+				local ScrollContainer = Instance.new("Frame")
+				local ScrollContainerList = Instance.new("UIListLayout")
+				local dropdownLeave = false
+				local Dropdowntitle;
+				if Search then
+					Dropdowntitle = Instance.new("TextBox")
+				else
+					Dropdowntitle = Instance.new("TextLabel")
+				end
+				
+				DropdownFrame.Name = Title .. "DropdownFrame"
+				DropdownFrame.Parent = Section
+				DropdownFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				DropdownFrame.BackgroundTransparency = 1.000
+				DropdownFrame.Position = UDim2.new(0, 0, 0.473684222, 0)
+				DropdownFrame.Size = UDim2.new(1, 0, 0, 25)
+				Dropdownbg.Name = "Background1"
+				Dropdownbg.Parent = DropdownFrame
+				Dropdownbg.AnchorPoint = Vector2.new(0.5, 0.5)
+				Dropdownbg.Position = UDim2.new(0.5, 0, 0.5, 0)
+				Dropdownbg.Size = UDim2.new(1, -10, 1, 0)
+				Dropdownbg.ClipsDescendants = true
+				Dropdownbg.BackgroundColor3 = getgenv().UIColor["Background 1 Color"]
+				Dropdownbg.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+				Dropdowncorner.CornerRadius = UDim.new(0, 4)
+				Dropdowncorner.Name = "Dropdowncorner"
+				Dropdowncorner.Parent = Dropdownbg
+				Topdrop.Name = "Background2"
+				Topdrop.Parent = Dropdownbg
+				Topdrop.Size = UDim2.new(1, 0, 0, 25)
+				Topdrop.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
+				Topdrop.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+				UICorner.CornerRadius = UDim.new(0, 4)
+				UICorner.Parent = Topdrop
+				Dropdowntitle.Name = "TextColorPlaceholder"
+				Dropdowntitle.Parent = Topdrop
+				Dropdowntitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				Dropdowntitle.BackgroundTransparency = 1.000
+				Dropdowntitle.Position = UDim2.new(0, 10, 0, 0)
+				Dropdowntitle.Size = UDim2.new(1, -40, 1, 0)
+				Dropdowntitle.Font = Enum.Font.GothamBlack
+				Dropdowntitle.Text = ''
+				Dropdowntitle.TextSize = 14.000
+				Dropdowntitle.TextXAlignment = Enum.TextXAlignment.Left
+				Dropdowntitle.ClipsDescendants = true
+				local Sel = Instance.new("StringValue", Dropdowntitle)
+				Sel.Value = ""
+				
+				if not Multi and Default and table.find(List, Default) then
+					Sel.Value = Default
+				end
+				
+				-- FUNCTION UPDATE TITLE CHO MULTI MODE
+				local function updateTitle()
+					if Multi then
+						local selectedCount = 0
+						local selectedNames = {}
+						for value, isSelected in pairs(SelectedValues) do
+							if isSelected then
+								selectedCount = selectedCount + 1
+								table.insert(selectedNames, value)
+							end
+						end
+						
+						if selectedCount == 0 then
+							if Search then
+								Dropdowntitle.PlaceholderText = Title .. ": None"
+							else
+								Dropdowntitle.Text = Title .. ": None"
+							end
+						elseif selectedCount == 1 then
+							if Search then
+								Dropdowntitle.PlaceholderText = Title .. ": " .. selectedNames[1]
+							else
+								Dropdowntitle.Text = Title .. ": " .. selectedNames[1]
+							end
+						else
+							if Search then
+								Dropdowntitle.PlaceholderText = Title .. ": " .. selectedCount .. " selected"
+							else
+								Dropdowntitle.Text = Title .. ": " .. selectedCount .. " selected"
+							end
+						end
+					else
+						if not Selected then
+							if Search then
+								Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
+								Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
+							else
+								Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
+							end
+						else
+							if Search then
+								Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
+								Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
+							else
+								Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
+							end
+						end
+					end
+				end
+				
+				updateTitle()
+				
+				Dropdowntitle.TextColor3 = getgenv().UIColor["Text Color"]
+				ImgDrop.Name = "ImgDrop"
+				ImgDrop.Parent = Topdrop
+				ImgDrop.AnchorPoint = Vector2.new(1, 0.5)
+				ImgDrop.BackgroundTransparency = 1.000
+				ImgDrop.BorderColor3 = Color3.fromRGB(27, 42, 53)
+				ImgDrop.Position = UDim2.new(1, -6, 0.5, 0)
+				ImgDrop.Size = UDim2.new(0, 15, 0, 15)
+				ImgDrop.Image = "rbxassetid://6954383209"
+				ImgDrop.ImageColor3 = getgenv().UIColor["Dropdown Icon Color"]
+				DropdownButton.Name = "DropdownButton"
+				DropdownButton.Parent = Topdrop
+				DropdownButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				DropdownButton.BackgroundTransparency = 1.000
+				DropdownButton.Size = Search and UDim2.new(0, 30, 0, 30) or UDim2.new(1, 0, 1 , 0)
+				DropdownButton.Position = Search and UDim2.new(1, -35, 0, 0) or UDim2.new(0 , 0 , 0 , 0)
+				DropdownButton.Font = Enum.Font.GothamBold
+				DropdownButton.Text = ""
+				DropdownButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+				DropdownButton.TextSize = 14.000
+				Dropdownlisttt.Name = "Dropdownlisttt"
+				Dropdownlisttt.Parent = Dropdownbg
+				Dropdownlisttt.BackgroundTransparency = 1.000
+				Dropdownlisttt.BorderSizePixel = 0
+				Dropdownlisttt.Position = UDim2.new(0, 0, 0, 25)
+				Dropdownlisttt.Size = UDim2.new(1, 0, 0, 25)
+				Dropdownlisttt.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				DropdownScroll.Name = "DropdownScroll"
+				DropdownScroll.Parent = Dropdownlisttt
+				DropdownScroll.Active = true
+				DropdownScroll.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				DropdownScroll.BackgroundTransparency = 1.000
+				DropdownScroll.BorderSizePixel = 0
+				DropdownScroll.Size = UDim2.new(1, 0, 1, 0)
+				DropdownScroll.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+				DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+				DropdownScroll.ScrollBarThickness = 5
+				DropdownScroll.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
+				DropdownScroll.ScrollingEnabled = true
+				DropdownScroll.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+				ScrollContainer.Name = "ScrollContainer"
+				ScrollContainer.Parent = DropdownScroll
+				ScrollContainer.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+				ScrollContainer.BackgroundTransparency = 1.000
+				ScrollContainer.Position = UDim2.new(0, 5, 0, 5)
+				ScrollContainer.Size = UDim2.new(1, -15, 1, -5)
+				ScrollContainerList.Name = "ScrollContainerList"
+				ScrollContainerList.Parent = ScrollContainer
+				ScrollContainerList.SortOrder = Enum.SortOrder.LayoutOrder
+				ScrollContainerList.Padding = UDim.new(0, 5)
+				ScrollContainerList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+					DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 10 + ScrollContainerList.AbsoluteContentSize.Y + 5)
+				end)
+				local isbusy = false
+				local found = {}
+				local searchtable = {}
+				local function edit()
+					for i in pairs(found) do
+						found[i] = nil
+					end
+					for h, l in pairs(ScrollContainer:GetChildren()) do
+						if not l:IsA("UIListLayout") and not l:IsA("UIPadding") and not l:IsA('UIGridLayout') then
+							l.Visible = false
+						end
+					end
+					Dropdowntitle.Text = string.lower(Dropdowntitle.Text)
+				end
+				local function SearchDropdown()
+					local Results = {}
+					for i, v in pairs(searchtable) do
+						if string.find(v, Dropdowntitle.Text) then
+							table.insert(found, v)
+						end
+					end
+					for a, b in pairs(ScrollContainer:GetChildren()) do
+						for c, d in pairs(found) do
+							if d == b.Name then
+								b.Visible = true
+							end
+						end
+					end
+				end
+				local function clear_object_in_list()
+					for i, v in next, ScrollContainer:GetChildren() do
+						if v:IsA('Frame') then
+							v:Destroy()
+						end
+					end
+				end
+				local ListNew = List
+				
+				-- THÊM FUNCTION TẠO ITEM CHO MULTI MODE VỚI TICK
+				local function createMultiItem(value)
+					local SampleItem = Instance.new("Frame")
+					local SampleItemCorner = Instance.new("UICorner")
+					local SampleItemBG = Instance.new("Frame")
+					local SampleItemBGCorner = Instance.new("UICorner")
+					local SampleItemTitle = Instance.new("TextLabel")
+					local SampleItemCheck = Instance.new("ImageButton")
+					local SampleItemButton = Instance.new("TextButton")
+					
+					SampleItem.Name = string.lower(value)
+					SampleItem.Parent = ScrollContainer
+					SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+					SampleItem.BackgroundTransparency = 1.000
+					SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
+					SampleItem.LayoutOrder = 1
+					SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
+					SampleItem.Size = UDim2.new(1, 0, 0, 25)
+					
+					SampleItemCorner.CornerRadius = UDim.new(0, 4)
+					SampleItemCorner.Name = "SampleItemCorner"
+					SampleItemCorner.Parent = SampleItem
+					
+					SampleItemBG.Name = "SampleItemBG"
+					SampleItemBG.Parent = SampleItem
+					SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
+					SampleItemBG.BackgroundColor3 = SelectedValues[value] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+					SampleItemBG.BackgroundTransparency = SelectedValues[value] and 0.5 or 1
+					SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
+					SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+					SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
+					
+					SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
+					SampleItemBGCorner.Name = "SampleItemBGCorner"
+					SampleItemBGCorner.Parent = SampleItemBG
+					
+					SampleItemTitle.Name = "SampleItemTitle"
+					SampleItemTitle.Parent = SampleItemBG
+					SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					SampleItemTitle.BackgroundTransparency = 1.000
+					SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
+					SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
+					SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
+					SampleItemTitle.Font = Enum.Font.GothamBlack
+					SampleItemTitle.Text = value
+					SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+					SampleItemTitle.TextSize = 14.000
+					SampleItemTitle.TextStrokeTransparency = 0.500
+					SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
+					
+					-- TICK CHỈ CHO MULTI MODE
+					SampleItemCheck.Name = "SampleItemCheck"
+					SampleItemCheck.Parent = SampleItemBG
+					SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
+					SampleItemCheck.BackgroundTransparency = 1.000
+					SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
+					SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
+					SampleItemCheck.ZIndex = 2
+					SampleItemCheck.Image = "rbxassetid://3926305904"
+					SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+					SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
+					SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
+					SampleItemCheck.ImageTransparency = SelectedValues[value] and 0 or 1
+					
+					SampleItemButton.Name = "SampleItemButton"
+					SampleItemButton.Parent = SampleItem
+					SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					SampleItemButton.BackgroundTransparency = 1.000
+					SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+					SampleItemButton.BorderSizePixel = 0
+					SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
+					SampleItemButton.Font = Enum.Font.SourceSans
+					SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
+					SampleItemButton.TextSize = 14.000
+					SampleItemButton.TextTransparency = 1.000
+					
+					SampleItemButton.MouseEnter:Connect(function()
+						if not SelectedValues[value] then
+							TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+								BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+								BackgroundTransparency = 0.7
+							}):Play()
+						end
+					end)
+					
+					SampleItemButton.MouseLeave:Connect(function()
+						if not SelectedValues[value] then
+							TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+								BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+								BackgroundTransparency = 1
+							}):Play()
+						end
+					end)
+					
+					SampleItemButton.MouseButton1Click:Connect(function()
+						SelectedValues[value] = not SelectedValues[value]
+						
+						TweenService:Create(SampleItemCheck, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+							ImageTransparency = SelectedValues[value] and 0 or 1
+						}):Play()
+						
+						TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+							BackgroundColor3 = SelectedValues[value] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255),
+							BackgroundTransparency = SelectedValues[value] and 0.5 or 1
+						}):Play()
+						
+						updateTitle()
+						
+						local selectedArray = {}
+						for val, isSel in pairs(SelectedValues) do
+							if isSel then
+								table.insert(selectedArray, val)
+							end
+						end
+						Callback(selectedArray)
+					end)
+				end
+				
+				local function refreshlist(SortPairs)
+					pairs = SortPairs or pairs
+					clear_object_in_list()
+					searchtable = {}
+					
+					-- THÊM MULTI MODE VÀO LOGIC
+					if Multi then
+						for i, v in pairs(ListNew) do
+							if typeof(v) == "string" then
+								table.insert(searchtable, string.lower(v))
+								createMultiItem(v)
+							end
+						end
+					elseif Selected then
+						for i, v in pairs (ListNew) do
+							table.insert(searchtable, string.lower(i))
+							-- ... (giữ nguyên code Selected mode gốc của bạn)
+							local SampleItem = Instance.new("Frame")
+							local SampleItemCorner = Instance.new("UICorner")
+							local SampleItemBG = Instance.new("Frame")
+							local SampleItemBGCorner = Instance.new("UICorner")
+							local SampleItemTitle = Instance.new("TextLabel")
+							local SampleItemCheck = Instance.new("ImageButton")
+							local SampleItemButton = Instance.new("TextButton")
+							SampleItem.Name = string.lower(i)
+							SampleItem.Parent = ScrollContainer
+							SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+							SampleItem.BackgroundTransparency = 1.000
+							SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
+							SampleItem.LayoutOrder = 1
+							SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
+							SampleItem.Size = UDim2.new(1, 0, 0, 25)
+							SampleItemCorner.CornerRadius = UDim.new(0, 4)
+							SampleItemCorner.Name = "SampleItemCorner"
+							SampleItemCorner.Parent = SampleItem
+							SampleItemBG.Name = "SampleItemBG"
+							SampleItemBG.Parent = SampleItem
+							SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
+							SampleItemBG.BackgroundColor3 = v and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+							SampleItemBG.BackgroundTransparency = v and .5 or 1
+							SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
+							SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+							SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
+							SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
+							SampleItemBGCorner.Name = "SampleItemBGCorner"
+							SampleItemBGCorner.Parent = SampleItemBG
+							SampleItemTitle.Name = "SampleItemTitle"
+							SampleItemTitle.Parent = SampleItemBG
+							SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+							SampleItemTitle.BackgroundTransparency = 1.000
+							SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
+							SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
+							SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
+							SampleItemTitle.Font = Enum.Font.GothamBlack
+							SampleItemTitle.Text = i
+							SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+							SampleItemTitle.TextSize = 14.000
+							SampleItemTitle.TextStrokeTransparency = 0.500
+							SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
+							SampleItemCheck.Name = "SampleItemCheck"
+							SampleItemCheck.Parent = SampleItemBG
+							SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
+							SampleItemCheck.BackgroundTransparency = 1.000
+							SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
+							SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
+							SampleItemCheck.ZIndex = 2
+							SampleItemCheck.Image = "rbxassetid://3926305904"
+							SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+							SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
+							SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
+							SampleItemCheck.ImageTransparency = v and 0 or 1
+							SampleItemButton.Name = "SampleItemButton"
+							SampleItemButton.Parent = SampleItem
+							SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+							SampleItemButton.BackgroundTransparency = 1.000
+							SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+							SampleItemButton.BorderSizePixel = 0
+							SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
+							SampleItemButton.Font = Enum.Font.SourceSans
+							SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
+							SampleItemButton.TextSize = 14.000
+							SampleItemButton.TextTransparency = 1.000
+							SampleItemButton.MouseEnter:Connect(function()
+								if v then
+									return
+								end
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+								}
+										):Play()
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundTransparency = .7
+								}
+										):Play()
+							end)
+							SampleItemButton.MouseLeave:Connect(function()
+								if v then
+									return
+								end
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+								}
+										):Play()
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundTransparency = 1
+								}
+										):Play()
+							end)
+							SampleItemButton.MouseButton1Click:Connect(function()
+								v = not v
+								TweenService:Create(
+											SampleItemCheck,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									ImageTransparency = v and 0 or 1
+								}
+										):Play()
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundColor3 = v and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+								}
+										):Play()
+								TweenService:Create(
+											SampleItemBG,
+											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+									BackgroundTransparency = v and .5 or 1
+								}
+										):Play()
+								if Callback then
+									Callback(i, v)
+									ListNew[i] = v
+								end
+								if Search then
+									Dropdowntitle.PlaceholderText = Title .. ': '
+								else
+									Dropdowntitle.Text = Title .. ': '
+								end
+							end)
+						end
+					elseif Slider then
+						for i, v in pairs(ListNew) do
+							table.insert(searchtable, string.lower(v['Title']))
+							-- ... (giữ nguyên code Slider mode gốc của bạn)
+							local TitleText = tostring(v.Title) or ""
+							local minValue = tonumber(v.Min) or 0
+							local maxValue = tonumber(v.Max) or 100
+							local Precise = v.Precise or false
+							local DefaultValue = tonumber(v.Default) or minValue
+							local SizeChia = 365;
+							local SliderFrame = Instance.new("Frame")
+							local SliderCorner = Instance.new("UICorner")
+							local SliderBG = Instance.new("Frame")
+							local SliderBGCorner = Instance.new("UICorner")
+							local SliderTitle = Instance.new("TextLabel")
+							local SliderBar = Instance.new("Frame")
+							local SliderButton = Instance.new("TextButton")
+							local SliderBarCorner = Instance.new("UICorner")
+							local Bar = Instance.new("Frame")
+							local BarCorner = Instance.new("UICorner")
+							local Sliderboxframe = Instance.new("Frame")
+							local Sliderbox = Instance.new("UICorner")
+							local Sliderbox_2 = Instance.new("TextBox")
+							SliderFrame.Name = string.lower(v['Title'])
+							SliderFrame.Parent = ScrollContainer
+							SliderFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+							SliderFrame.BackgroundTransparency = 1.000
+							SliderFrame.Position = UDim2.new(0, 0, 0.208333328, 0)
+							SliderFrame.Size = UDim2.new(1, 0, 0, 50)
+							SliderCorner.CornerRadius = UDim.new(0, 4)
+							SliderCorner.Name = "SliderCorner"
+							SliderCorner.Parent = SliderFrame
+							SliderBG.Name = "Background1"
+							SliderBG.Parent = SliderFrame
+							SliderBG.AnchorPoint = Vector2.new(0.5, 0.5)
+							SliderBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+							SliderBG.Size = UDim2.new(1, -10, 1, 0)
+							SliderBG.BackgroundColor3 = getgenv().UIColor["Background 1 Color"]
+							SliderBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+							SliderBGCorner.CornerRadius = UDim.new(0, 4)
+							SliderBGCorner.Name = "SliderBGCorner"
+							SliderBGCorner.Parent = SliderBG
+							SliderTitle.Name = "TextColor"
+							SliderTitle.Parent = SliderBG
+							SliderTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+							SliderTitle.BackgroundTransparency = 1.000
+							SliderTitle.Position = UDim2.new(0, 10, 0, 0)
+							SliderTitle.Size = UDim2.new(1, -10, 0, 25)
+							SliderTitle.Font = Enum.Font.GothamBlack
+							SliderTitle.Text = TitleText
+							SliderTitle.TextSize = 14.000
+							SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
+							SliderTitle.TextColor3 = getgenv().UIColor["Text Color"]
+							SliderBar.Name = "SliderBar"
+							SliderBar.Parent = SliderFrame
+							SliderBar.AnchorPoint = Vector2.new(.5, 0.5)
+							SliderBar.Position = UDim2.new(.5, 0, 0.5, 14)
+							SliderBar.Size = UDim2.new(1, -20, 0, 6)
+							SliderBar.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
+							SliderButton.Name = "SliderButton "
+							SliderButton.Parent = SliderBar
+							SliderButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+							SliderButton.BackgroundTransparency = 1.000
+							SliderButton.Size = UDim2.new(1, 0, 1, 0)
+							SliderButton.Font = Enum.Font.GothamBold
+							SliderButton.Text = ""
+							SliderButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+							SliderButton.TextSize = 14.000
+							SliderBarCorner.CornerRadius = UDim.new(1, 0)
+							SliderBarCorner.Name = "SliderBarCorner"
+							SliderBarCorner.Parent = SliderBar
+							Bar.Name = "Bar"
+							Bar.BorderSizePixel = 0
+							Bar.Parent = SliderBar
+							Bar.Size = UDim2.new(0, 0, 1, 0)
+							Bar.BackgroundColor3 = getgenv().UIColor["Slider Line Color"]
+							BarCorner.CornerRadius = UDim.new(1, 0)
+							BarCorner.Name = "BarCorner"
+							BarCorner.Parent = Bar
+							Sliderboxframe.Name = "Background2"
+							Sliderboxframe.Parent = SliderFrame
+							Sliderboxframe.AnchorPoint = Vector2.new(1, 0)
+							Sliderboxframe.Position = UDim2.new(1, -10, 0, 5)
+							Sliderboxframe.Size = UDim2.new(0, 150, 0, 25)
+							Sliderboxframe.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
+							Sliderbox.CornerRadius = UDim.new(0, 4)
+							Sliderbox.Name = "Sliderbox"
+							Sliderbox.Parent = Sliderboxframe
+							Sliderbox_2.Name = "TextColor"
+							Sliderbox_2.Parent = Sliderboxframe
+							Sliderbox_2.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+							Sliderbox_2.BackgroundTransparency = 1.000
+							Sliderbox_2.Size = UDim2.new(1, 0, 1, 0)
+							Sliderbox_2.Font = Enum.Font.GothamBold
+							Sliderbox_2.Text = ""
+							Sliderbox_2.TextSize = 14.000
+							Sliderbox_2.TextColor3 = getgenv().UIColor["Text Color"]
+							SliderButton.MouseEnter:Connect(function()
+								TweenService:Create(Bar, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+									BackgroundColor3 = getgenv().UIColor["Slider Highlight Color"]
+								}):Play()
+							end)
+							SliderButton.MouseLeave:Connect(function()
+								TweenService:Create(Bar, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+									BackgroundColor3 = getgenv().UIColor["Slider Line Color"]
+								}):Play()
+							end)
+							local callBackAndSetText = function(val)
+								Sliderbox_2.Text = val
+								ListNew[i].Default = val
+								Callback(i, v)
+							end
+							if DefaultValue then
+								if DefaultValue <= minValue then
+									DefaultValue = minValue
+								elseif DefaultValue >= maxValue then
+									DefaultValue = maxValue
+								end
+								Bar.Size = UDim2.new(1 - ((maxValue - DefaultValue) / (maxValue - minValue)), 0, 0, 6)
+								callBackAndSetText(DefaultValue)
+							end
+							if SliderRelease then
+								local dragging = false
+								local dragInput
+								local holdTime = 0
+								local holdStarted = 0
+
+										-- Function to detect the start of dragging (for both mouse and touch)
+								local function onInputBegan(input)
+									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+										holdStarted = tick() -- Record the time when holding starts
+										
+												-- Listen for release to stop dragging
+										input.Changed:Connect(function()
+											if input.UserInputState == Enum.UserInputState.End then
+												dragging = false
+												holdStarted = 0 -- Reset the hold timer
+											end
+										end)
+									end
+								end
+										
+										-- Function to detect when dragging stops
+								local function onInputEnded(input)
+									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+										dragging = false
+										holdStarted = 0 -- Reset the hold timer
+									end
+								end
+
+										-- Detect input movement (for both mouse and touch)
+								local function onInputChanged(input)
+									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+										dragInput = input
+									end
+								end
+										
+										-- Connect the events
+								SliderButton.InputBegan:Connect(onInputBegan)
+								SliderButton.InputEnded:Connect(onInputEnded)
+								SliderButton.InputChanged:Connect(onInputChanged)
+										
+										-- RenderStepped updates the position while dragging
+								RunService.RenderStepped:Connect(function()
+									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
+										dragging = true
+									end
+									if dragging and dragInput then
+										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
+										pcall(function()
+											callBackAndSetText(value)
+										end)
+										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
+									end
+								end)
+							end
+							local function GetSliderValue(Value)
+								if tonumber(Value) <= minValue then
+									Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
+									callBackAndSetText(minValue)
+								elseif tonumber(Value) >= maxValue then
+									Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
+									callBackAndSetText(maxValue)
+								else
+									Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
+									callBackAndSetText(Value)
+								end
+							end
+							Sliderbox_2.FocusLost:Connect(function()
+								GetSliderValue(Sliderbox_2.Text)
+							end)
+						end
+					else
+						for i, v in pairs (ListNew) do
+							if typeof(v) == "string" then
+								table.insert(searchtable, string.lower(v))
+								-- ... (giữ nguyên code normal mode gốc của bạn)
+								local SampleItem = Instance.new("Frame")
+								local SampleItemCorner = Instance.new("UICorner")
+								local SampleItemBG = Instance.new("Frame")
+								local SampleItemBGCorner = Instance.new("UICorner")
+								local SampleItemTitle = Instance.new("TextLabel")
+								local SampleItemCheck = Instance.new("ImageButton")
+								local SampleItemButton = Instance.new("TextButton")
+								SampleItem.Name = string.lower(v)
+								SampleItem.Parent = ScrollContainer
+								SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+								SampleItem.BackgroundTransparency = 1.000
+								SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
+								SampleItem.LayoutOrder = 1
+								SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
+								SampleItem.Size = UDim2.new(1, 0, 0, 25)
+								SampleItemCorner.CornerRadius = UDim.new(0, 4)
+								SampleItemCorner.Name = "SampleItemCorner"
+								SampleItemCorner.Parent = SampleItem
+								SampleItemBG.Name = "SampleItemBG"
+								SampleItemBG.Parent = SampleItem
+								SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
+								SampleItemBG.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+								SampleItemBG.BackgroundTransparency = 1
+								SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
+								SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
+								SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
+								SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
+								SampleItemBGCorner.Name = "SampleItemBGCorner"
+								SampleItemBGCorner.Parent = SampleItemBG
+								SampleItemTitle.Name = "SampleItemTitle"
+								SampleItemTitle.Parent = SampleItemBG
+								SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+								SampleItemTitle.BackgroundTransparency = 1.000
+								SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
+								SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
+								SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
+								SampleItemTitle.Font = Enum.Font.GothamBlack
+								SampleItemTitle.Text = v
+								SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+								SampleItemTitle.TextSize = 14.000
+								SampleItemTitle.TextStrokeTransparency = 0.500
+								SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
+								SampleItemCheck.Name = "SampleItemCheck"
+								SampleItemCheck.Parent = SampleItemBG
+								SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
+								SampleItemCheck.BackgroundTransparency = 1.000
+								SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
+								SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
+								SampleItemCheck.ZIndex = 2
+								SampleItemCheck.Image = "rbxassetid://3926305904"
+								SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+								SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
+								SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
+								SampleItemCheck.ImageTransparency = 1
+								SampleItemButton.Name = "SampleItemButton"
+								SampleItemButton.Parent = SampleItem
+								SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+								SampleItemButton.BackgroundTransparency = 1.000
+								SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+								SampleItemButton.BorderSizePixel = 0
+								SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
+								SampleItemButton.Font = Enum.Font.SourceSans
+								SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
+								SampleItemButton.TextSize = 14.000
+								SampleItemButton.TextTransparency = 1.000
+								SampleItemButton.MouseEnter:Connect(function()
+									if Sel.Value == v then
+										return
+									end
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+									}
+											):Play()
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundTransparency = .7
+									}
+											):Play()
+								end)
+								SampleItemButton.MouseLeave:Connect(function()
+									if Sel.Value == v then
+										return
+									end
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+									}
+											):Play()
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundTransparency = 1
+									}
+											):Play()
+								end)
+								SampleItemButton.MouseButton1Click:Connect(function()
+									if Search then
+										Dropdowntitle.PlaceholderText = Title .. ': ' .. v or ""
+										Sel.Value = v
+									else
+										Dropdowntitle.Text = Title .. ': ' .. v or ""
+										Sel.Value = v
+									end
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+									}
+											):Play()
+									TweenService:Create(
+												SampleItemBG,
+												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+										BackgroundTransparency = .5
+									}
+											):Play()
+									if Callback then
+										Callback(v)
+									end
+									if Search then
+										Dropdowntitle.Text = ""
+									end
+									refreshlist()
+								end)
+								if Sel.Value == v then
+									SampleItemBG.BackgroundTransparency = .5;
+									SampleItemBG.BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+									SampleItem.LayoutOrder = 0
+								end
+							end
+						end
+					end
+				end
+				
+				if Search then
+					Dropdowntitle.Changed:Connect(function()
+						edit()
+						SearchDropdown()
+					end)
+				end
+				
+				-- XỬ LÝ CALLBACK INITIAL CHO MULTI MODE
+				if Multi then
+					local selectedArray = {}
+					for val, isSel in pairs(SelectedValues) do
+						if isSel then
+							table.insert(selectedArray, val)
+						end
+					end
+					Callback(selectedArray)
+				elseif typeof(Default) ~= 'table' then
+					Callback(Default)
+					if Search then
+						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "")
+					else
+						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "")
+					end
+				elseif Slider then
+					Dropdowntitle.Text = ''
+					Dropdowntitle.PlaceholderText = Title .. ': '
+				elseif Selected then
+					if Search then
+						Dropdowntitle.PlaceholderText = Title .. ': '
+					else
+						Dropdowntitle.Text = Title .. ': '
+					end
+				end
+				
+				DropdownButton.MouseButton1Click:Connect(function()
+					refreshlist()
+					isbusy = not isbusy
+					local listsize = isbusy and UDim2.new(1, 0, 0, 170) or UDim2.new(1, 0, 0, 0)
+					local mainsize = isbusy and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 25)
+					local DropCRotation = isbusy and 90 or 0
+					TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Size = listsize
+					}):Play()
+					TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Size = mainsize
+					}):Play()
+					TweenService:Create(ImgDrop, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Rotation = DropCRotation
+					}):Play()
+				end)
+				
+				local dropdownFunction = {
+					rf = refreshlist
+				}
+				
+				function dropdownFunction:ClearText(v)
+					if not Selected then
+						if Search then
+							Dropdowntitle.PlaceholderText = Title .. ': ' .. (v or "")
+						else
+							Dropdowntitle.Text = Title .. ': ' .. (v or "")
+						end
+					else
+						Dropdowntitle.Text = Title .. ': ' .. (v or "")
+					end
+				end
+				
+				function dropdownFunction:GetNewList(List)
+					Sel.Value = ""
+					isbusy = false
+					local listsize = isbusy and UDim2.new(1, 0, 0, 170) or UDim2.new(1, 0, 0, 0)
+					local mainsize = isbusy and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 25)
+					local DropCRotation = isbusy and 90 or 0
+					TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Size = listsize
+					}):Play()
+					TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Size = mainsize
+					}):Play()
+					TweenService:Create(ImgDrop, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
+						Rotation = DropCRotation
+					}):Play()
+					ListNew = {}
+					ListNew = List
+					refreshlist()
+					if Search then
+						Dropdowntitle.PlaceholderText = Title .. ': '
+					else
+						Dropdowntitle.Text = Title .. ': '
+					end
+				end
+				
+				-- THÊM FUNCTION CHO MULTI MODE
+				function dropdownFunction:SetValue(values)
+					if Multi then
+						SelectedValues = {}
+						for _, value in pairs(values) do
+							if table.find(List, value) then
+								SelectedValues[value] = true
+							end
+						end
+						refreshlist()
+						updateTitle()
+						
+						local selectedArray = {}
+						for val, isSel in pairs(SelectedValues) do
+							if isSel then
+								table.insert(selectedArray, val)
+							end
+						end
+						Callback(selectedArray)
+					else
+						Sel.Value = values
+						updateTitle()
+						Callback(values)
+					end
+				end
+				
+				function dropdownFunction:GetValue()
+					if Multi then
+						local selectedArray = {}
+						for val, isSel in pairs(SelectedValues) do
+							if isSel then
+								table.insert(selectedArray, val)
+							end
+						end
+						return selectedArray
+					else
+						return Sel.Value
+					end
+				end
+				
+				local controlData = {
+					Name = Title,
+					Section = DropdownFrame,
+					Element = DropdownFrame,
+					SectionName = Section.Name,
+					TabName = Page_Name,
+					TabButton = PageName
+				}
+				table.insert(getgenv().AllControls, controlData)
+				
+				return dropdownFunction
+			end
 
 function sectionFunction:AddButton(Setting)
     Setting = Setting or {}
@@ -2537,8 +3535,8 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
         end
     end
 
-	refreshlist()
-				
+    refreshlist()
+    
     local controlData = {
         Name = Title,
         Section = DropdownFrame,
@@ -2829,806 +3827,6 @@ end
     return dropdownSectionFunction
 end
 			
-			function sectionFunction:AddDropdown(idk, Setting)
-                Setting = Setting or {}
-                local Title = tostring(Setting.Text or Setting.Title or "Dropdown")
-                local List = Setting.Values or {}
-                local Search = Setting.Search or false
-                local Selected = Setting.Selected or false
-                local Slider = Setting.Slider or false
-                local SliderRelease = Setting.SliderRelease or false
-				local Default = (function ()
-                    if Setting.Default then
-                        if type(Setting.Default) == "number" then
-                            return List[Setting.Default]
-                        elseif type(Setting.Default) == "string" then
-                            return Setting.Default
-                        end
-                    end
-                    return nil
-                end)()
-				local Callback = Setting.Callback or function() end
-                local pairs = Setting.SortPairs or pairs
-				local DropdownFrame = Instance.new("Frame")
-				local Dropdownbg = Instance.new("Frame")
-				local Dropdowncorner = Instance.new("UICorner")
-				local Topdrop = Instance.new("Frame")
-				local UICorner = Instance.new("UICorner")
-				local ImgDrop = Instance.new("ImageLabel")
-				local DropdownButton = Instance.new("TextButton")
-				local Dropdownlisttt = Instance.new("Frame")
-				local DropdownScroll = Instance.new("ScrollingFrame")
-				local ScrollContainer = Instance.new("Frame")
-				local ScrollContainerList = Instance.new("UIListLayout")
-				local dropdownLeave = false
-				local Dropdowntitle;
-				if Search then
-					Dropdowntitle = Instance.new("TextBox")
-				else
-					Dropdowntitle = Instance.new("TextLabel")
-				end
-				DropdownFrame.Name = Title .. "DropdownFrame"
-				DropdownFrame.Parent = Section
-				DropdownFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				DropdownFrame.BackgroundTransparency = 1.000
-				DropdownFrame.Position = UDim2.new(0, 0, 0.473684222, 0)
-				DropdownFrame.Size = UDim2.new(1, 0, 0, 25)
-				Dropdownbg.Name = "Background1"
-				Dropdownbg.Parent = DropdownFrame
-				Dropdownbg.AnchorPoint = Vector2.new(0.5, 0.5)
-				Dropdownbg.Position = UDim2.new(0.5, 0, 0.5, 0)
-				Dropdownbg.Size = UDim2.new(1, -10, 1, 0)
-				Dropdownbg.ClipsDescendants = true
-				Dropdownbg.BackgroundColor3 = getgenv().UIColor["Background 1 Color"]
-				Dropdownbg.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-				Dropdowncorner.CornerRadius = UDim.new(0, 4)
-				Dropdowncorner.Name = "Dropdowncorner"
-				Dropdowncorner.Parent = Dropdownbg
-				Topdrop.Name = "Background2"
-				Topdrop.Parent = Dropdownbg
-				Topdrop.Size = UDim2.new(1, 0, 0, 25)
-				Topdrop.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
-				Topdrop.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-				UICorner.CornerRadius = UDim.new(0, 4)
-				UICorner.Parent = Topdrop
-				Dropdowntitle.Name = "TextColorPlaceholder"
-				Dropdowntitle.Parent = Topdrop
-				Dropdowntitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				Dropdowntitle.BackgroundTransparency = 1.000
-				Dropdowntitle.Position = UDim2.new(0, 10, 0, 0)
-				Dropdowntitle.Size = UDim2.new(1, -40, 1, 0)
-				Dropdowntitle.Font = Enum.Font.GothamBlack
-				Dropdowntitle.Text = ''
-				Dropdowntitle.TextSize = 14.000
-				Dropdowntitle.TextXAlignment = Enum.TextXAlignment.Left
-				Dropdowntitle.ClipsDescendants = true
-				local Sel = Instance.new("StringValue", Dropdowntitle)
-				Sel.Value = ""
-				if Default and table.find(List, Default) then
-					Sel.Value = Default
-				end
-				if not Selected then
-					if Search then
-						Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
-					else
-						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
-					end
-				else
-					if Search then
-						Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
-					else
-						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
-					end
-				end
-				Dropdowntitle.TextColor3 = getgenv().UIColor["Text Color"]
-				ImgDrop.Name = "ImgDrop"
-				ImgDrop.Parent = Topdrop
-				ImgDrop.AnchorPoint = Vector2.new(1, 0.5)
-				ImgDrop.BackgroundTransparency = 1.000
-				ImgDrop.BorderColor3 = Color3.fromRGB(27, 42, 53)
-				ImgDrop.Position = UDim2.new(1, -6, 0.5, 0)
-				ImgDrop.Size = UDim2.new(0, 15, 0, 15)
-				ImgDrop.Image = "rbxassetid://6954383209"
-				ImgDrop.ImageColor3 = getgenv().UIColor["Dropdown Icon Color"]
-				DropdownButton.Name = "DropdownButton"
-				DropdownButton.Parent = Topdrop
-				DropdownButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				DropdownButton.BackgroundTransparency = 1.000
-				DropdownButton.Size = Search and UDim2.new(0, 30, 0, 30) or UDim2.new(1, 0, 1 , 0)
-				DropdownButton.Position = Search and UDim2.new(1, -35, 0, 0) or UDim2.new(0 , 0 , 0 , 0)
-				DropdownButton.Font = Enum.Font.GothamBold
-				DropdownButton.Text = ""
-				DropdownButton.TextColor3 = Color3.fromRGB(230, 230, 230)
-				DropdownButton.TextSize = 14.000
-				Dropdownlisttt.Name = "Dropdownlisttt"
-				Dropdownlisttt.Parent = Dropdownbg
-				Dropdownlisttt.BackgroundTransparency = 1.000
-				Dropdownlisttt.BorderSizePixel = 0
-				Dropdownlisttt.Position = UDim2.new(0, 0, 0, 25)
-				Dropdownlisttt.Size = UDim2.new(1, 0, 0, 25)
-				Dropdownlisttt.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				DropdownScroll.Name = "DropdownScroll"
-				DropdownScroll.Parent = Dropdownlisttt
-				DropdownScroll.Active = true
-				DropdownScroll.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				DropdownScroll.BackgroundTransparency = 1.000
-				DropdownScroll.BorderSizePixel = 0
-				DropdownScroll.Size = UDim2.new(1, 0, 1, 0)
-				DropdownScroll.BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
-				DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-				DropdownScroll.ScrollBarThickness = 5
-				DropdownScroll.TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png"
-				DropdownScroll.ScrollingEnabled = true
-				DropdownScroll.VerticalScrollBarInset = Enum.ScrollBarInset.Always
-				ScrollContainer.Name = "ScrollContainer"
-				ScrollContainer.Parent = DropdownScroll
-				ScrollContainer.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				ScrollContainer.BackgroundTransparency = 1.000
-				ScrollContainer.Position = UDim2.new(0, 5, 0, 5)
-				ScrollContainer.Size = UDim2.new(1, -15, 1, -5)
-				ScrollContainerList.Name = "ScrollContainerList"
-				ScrollContainerList.Parent = ScrollContainer
-				ScrollContainerList.SortOrder = Enum.SortOrder.LayoutOrder
-				ScrollContainerList.Padding = UDim.new(0, 5)
-				ScrollContainerList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-					DropdownScroll.CanvasSize = UDim2.new(0, 0, 0, 10 + ScrollContainerList.AbsoluteContentSize.Y + 5)
-				end)
-				local isbusy = false
-				local found = {}
-				local searchtable = {}
-				local function edit()
-					for i in pairs(found) do
-						found[i] = nil
-					end
-					for h, l in pairs(ScrollContainer:GetChildren()) do
-						if not l:IsA("UIListLayout") and not l:IsA("UIPadding") and not l:IsA('UIGridLayout') then
-							l.Visible = false
-						end
-					end
-					Dropdowntitle.Text = string.lower(Dropdowntitle.Text)
-				end
-				local function SearchDropdown()
-					local Results = {}
-					for i, v in pairs(searchtable) do
-						if string.find(v, Dropdowntitle.Text) then
-							table.insert(found, v)
-						end
-					end
-					for a, b in pairs(ScrollContainer:GetChildren()) do
-						for c, d in pairs(found) do
-							if d == b.Name then
-								b.Visible = true
-							end
-						end
-					end
-				end
-				local function clear_object_in_list()
-					for i, v in next, ScrollContainer:GetChildren() do
-						if v:IsA('Frame') then
-							v:Destroy()
-						end
-					end
-				end
-				local ListNew = List
-				local function refreshlist(SortPairs)
-					pairs = SortPairs or pairs
-					clear_object_in_list()
-					searchtable = {}
-					for i, v in pairs(ListNew) do
-						if Selected then
-							table.insert(searchtable, string.lower(i))
-						elseif Slider then
-							table.insert(searchtable, string.lower(v['Title']))
-						else
-							table.insert(searchtable, string.lower(v))
-						end
-					end
-					if Selected then
-						for i, v in pairs (ListNew) do
-							local SampleItem = Instance.new("Frame")
-							local SampleItemCorner = Instance.new("UICorner")
-							local SampleItemBG = Instance.new("Frame")
-							local SampleItemBGCorner = Instance.new("UICorner")
-							local SampleItemTitle = Instance.new("TextLabel")
-							local SampleItemCheck = Instance.new("ImageButton")
-							local SampleItemButton = Instance.new("TextButton")
-							SampleItem.Name = string.lower(i)
-							SampleItem.Parent = ScrollContainer
-							SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-							SampleItem.BackgroundTransparency = 1.000
-							SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
-							SampleItem.LayoutOrder = 1
-							SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
-							SampleItem.Size = UDim2.new(1, 0, 0, 25)
-							SampleItemCorner.CornerRadius = UDim.new(0, 4)
-							SampleItemCorner.Name = "SampleItemCorner"
-							SampleItemCorner.Parent = SampleItem
-							SampleItemBG.Name = "SampleItemBG"
-							SampleItemBG.Parent = SampleItem
-							SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
-							SampleItemBG.BackgroundColor3 = v and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
-							SampleItemBG.BackgroundTransparency = v and .5 or 1
-							SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
-							SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-							SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
-							SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
-							SampleItemBGCorner.Name = "SampleItemBGCorner"
-							SampleItemBGCorner.Parent = SampleItemBG
-							SampleItemTitle.Name = "SampleItemTitle"
-							SampleItemTitle.Parent = SampleItemBG
-							SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-							SampleItemTitle.BackgroundTransparency = 1.000
-							SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
-							SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
-							SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
-							SampleItemTitle.Font = Enum.Font.GothamBlack
-							SampleItemTitle.Text = i
-							SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-							SampleItemTitle.TextSize = 14.000
-							SampleItemTitle.TextStrokeTransparency = 0.500
-							SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
-							SampleItemCheck.Name = "SampleItemCheck"
-							SampleItemCheck.Parent = SampleItemBG
-							SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
-							SampleItemCheck.BackgroundTransparency = 1.000
-							SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
-							SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
-							SampleItemCheck.ZIndex = 2
-							SampleItemCheck.Image = "rbxassetid://3926305904"
-							SampleItemCheck.ImageColor3 = UIColor["Dropdown Selected Check Color"]
-							SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
-							SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
-							SampleItemCheck.ImageTransparency = v and 0 or 1
-							SampleItemButton.Name = "SampleItemButton"
-							SampleItemButton.Parent = SampleItem
-							SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-							SampleItemButton.BackgroundTransparency = 1.000
-							SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-							SampleItemButton.BorderSizePixel = 0
-							SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
-							SampleItemButton.Font = Enum.Font.SourceSans
-							SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
-							SampleItemButton.TextSize = 14.000
-							SampleItemButton.TextTransparency = 1.000
-							SampleItemButton.MouseEnter:Connect(function()
-								if v then
-									return
-								end
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-								}
-										):Play()
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundTransparency = .7
-								}
-										):Play()
-							end)
-							SampleItemButton.MouseLeave:Connect(function()
-								if v then
-									return
-								end
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-								}
-										):Play()
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundTransparency = 1
-								}
-										):Play()
-							end)
-							SampleItemButton.MouseButton1Click:Connect(function()
-								v = not v
-								TweenService:Create(
-											SampleItemCheck,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									ImageTransparency = v and 0 or 1
-								}
-										):Play()
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundColor3 = v and UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
-								}
-										):Play()
-								TweenService:Create(
-											SampleItemBG,
-											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundTransparency = v and .5 or 1
-								}
-										):Play()
-								if Callback then
-									Callback(i, v)
-									ListNew[i] = v
-								end
-								if Search then
-									Dropdowntitle.PlaceholderText = Title .. ': '
-								else
-									Dropdowntitle.Text = Title .. ': '
-								end
-							end)
-						end
-					elseif Slider then
-						for i, v in pairs(ListNew) do
-							local TitleText = tostring(v.Title) or ""
-							local minValue = tonumber(v.Min) or 0
-							local maxValue = tonumber(v.Max) or 100
-							local Precise = v.Precise or false
-							local DefaultValue = tonumber(v.Default) or minValue
-							local SizeChia = 365;
-							local SliderFrame = Instance.new("Frame")
-							local SliderCorner = Instance.new("UICorner")
-							local SliderBG = Instance.new("Frame")
-							local SliderBGCorner = Instance.new("UICorner")
-							local SliderTitle = Instance.new("TextLabel")
-							local SliderBar = Instance.new("Frame")
-							local SliderButton = Instance.new("TextButton")
-							local SliderBarCorner = Instance.new("UICorner")
-							local Bar = Instance.new("Frame")
-							local BarCorner = Instance.new("UICorner")
-							local Sliderboxframe = Instance.new("Frame")
-							local Sliderbox = Instance.new("UICorner")
-							local Sliderbox_2 = Instance.new("TextBox")
-							SliderFrame.Name = string.lower(v['Title'])
-							SliderFrame.Parent = ScrollContainer
-							SliderFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-							SliderFrame.BackgroundTransparency = 1.000
-							SliderFrame.Position = UDim2.new(0, 0, 0.208333328, 0)
-							SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-							SliderCorner.CornerRadius = UDim.new(0, 4)
-							SliderCorner.Name = "SliderCorner"
-							SliderCorner.Parent = SliderFrame
-							SliderBG.Name = "Background1"
-							SliderBG.Parent = SliderFrame
-							SliderBG.AnchorPoint = Vector2.new(0.5, 0.5)
-							SliderBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-							SliderBG.Size = UDim2.new(1, -10, 1, 0)
-							SliderBG.BackgroundColor3 = getgenv().UIColor["Background 1 Color"]
-							SliderBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-							SliderBGCorner.CornerRadius = UDim.new(0, 4)
-							SliderBGCorner.Name = "SliderBGCorner"
-							SliderBGCorner.Parent = SliderBG
-							SliderTitle.Name = "TextColor"
-							SliderTitle.Parent = SliderBG
-							SliderTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-							SliderTitle.BackgroundTransparency = 1.000
-							SliderTitle.Position = UDim2.new(0, 10, 0, 0)
-							SliderTitle.Size = UDim2.new(1, -10, 0, 25)
-							SliderTitle.Font = Enum.Font.GothamBlack
-							SliderTitle.Text = TitleText
-							SliderTitle.TextSize = 14.000
-							SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
-							SliderTitle.TextColor3 = getgenv().UIColor["Text Color"]
-							SliderBar.Name = "SliderBar"
-							SliderBar.Parent = SliderFrame
-							SliderBar.AnchorPoint = Vector2.new(.5, 0.5)
-							SliderBar.Position = UDim2.new(.5, 0, 0.5, 14)
-							SliderBar.Size = UDim2.new(1, -20, 0, 6)
-							SliderBar.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
-							SliderButton.Name = "SliderButton "
-							SliderButton.Parent = SliderBar
-							SliderButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-							SliderButton.BackgroundTransparency = 1.000
-							SliderButton.Size = UDim2.new(1, 0, 1, 0)
-							SliderButton.Font = Enum.Font.GothamBold
-							SliderButton.Text = ""
-							SliderButton.TextColor3 = Color3.fromRGB(230, 230, 230)
-							SliderButton.TextSize = 14.000
-							SliderBarCorner.CornerRadius = UDim.new(1, 0)
-							SliderBarCorner.Name = "SliderBarCorner"
-							SliderBarCorner.Parent = SliderBar
-							Bar.Name = "Bar"
-							Bar.BorderSizePixel = 0
-							Bar.Parent = SliderBar
-							Bar.Size = UDim2.new(0, 0, 1, 0)
-							Bar.BackgroundColor3 = getgenv().UIColor["Slider Line Color"]
-							BarCorner.CornerRadius = UDim.new(1, 0)
-							BarCorner.Name = "BarCorner"
-							BarCorner.Parent = Bar
-							Sliderboxframe.Name = "Background2"
-							Sliderboxframe.Parent = SliderFrame
-							Sliderboxframe.AnchorPoint = Vector2.new(1, 0)
-							Sliderboxframe.Position = UDim2.new(1, -10, 0, 5)
-							Sliderboxframe.Size = UDim2.new(0, 150, 0, 25)
-							Sliderboxframe.BackgroundColor3 = getgenv().UIColor["Background 2 Color"]
-							Sliderbox.CornerRadius = UDim.new(0, 4)
-							Sliderbox.Name = "Sliderbox"
-							Sliderbox.Parent = Sliderboxframe
-							Sliderbox_2.Name = "TextColor"
-							Sliderbox_2.Parent = Sliderboxframe
-							Sliderbox_2.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-							Sliderbox_2.BackgroundTransparency = 1.000
-							Sliderbox_2.Size = UDim2.new(1, 0, 1, 0)
-							Sliderbox_2.Font = Enum.Font.GothamBold
-							Sliderbox_2.Text = ""
-							Sliderbox_2.TextSize = 14.000
-							Sliderbox_2.TextColor3 = getgenv().UIColor["Text Color"]
-							SliderButton.MouseEnter:Connect(function()
-								TweenService:Create(Bar, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-									BackgroundColor3 = getgenv().UIColor["Slider Highlight Color"]
-								}):Play()
-							end)
-							SliderButton.MouseLeave:Connect(function()
-								TweenService:Create(Bar, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-									BackgroundColor3 = getgenv().UIColor["Slider Line Color"]
-								}):Play()
-							end)
-							local callBackAndSetText = function(val)
-								Sliderbox_2.Text = val
-								ListNew[i].Default = val
-								Callback(i, v)
-							end
-							if DefaultValue then
-								if DefaultValue <= minValue then
-									DefaultValue = minValue
-								elseif DefaultValue >= maxValue then
-									DefaultValue = maxValue
-								end
-								Bar.Size = UDim2.new(1 - ((maxValue - DefaultValue) / (maxValue - minValue)), 0, 0, 6)
-								callBackAndSetText(DefaultValue)
-							end
-							if SliderRelease then
-								local dragging = false
-								local dragInput
-								local holdTime = 0
-								local holdStarted = 0
-
-										-- Function to detect the start of dragging (for both mouse and touch)
-								local function onInputBegan(input)
-									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-										holdStarted = tick() -- Record the time when holding starts
-										
-												-- Listen for release to stop dragging
-										input.Changed:Connect(function()
-											if input.UserInputState == Enum.UserInputState.End then
-												dragging = false
-												holdStarted = 0 -- Reset the hold timer
-											end
-										end)
-									end
-								end
-										
-										-- Function to detect when dragging stops
-								local function onInputEnded(input)
-									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-										dragging = false
-										holdStarted = 0 -- Reset the hold timer
-									end
-								end
-
-										-- Detect input movement (for both mouse and touch)
-								local function onInputChanged(input)
-									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-										dragInput = input
-									end
-								end
-										
-										-- Connect the events
-								SliderButton.InputBegan:Connect(onInputBegan)
-								SliderButton.InputEnded:Connect(onInputEnded)
-								SliderButton.InputChanged:Connect(onInputChanged)
-										
-										-- RenderStepped updates the position while dragging
-								RunService.RenderStepped:Connect(function()
-									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
-										dragging = true
-									end
-									if dragging and dragInput then
-										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
-										pcall(function()
-											callBackAndSetText(value)
-										end)
-										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
-									end
-								end)
-							else
-								local dragging = false
-								local dragInput
-								local holdTime = 0 -- Time to hold before dragging is enabled
-								local holdStarted = 0
-
-										-- Function to detect the start of dragging (for both mouse and touch)
-								local function onInputBegan(input)
-									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-										holdStarted = tick() -- Record the time when holding starts
-										
-												-- Listen for release to stop dragging
-										input.Changed:Connect(function()
-											if input.UserInputState == Enum.UserInputState.End then
-												dragging = false
-												holdStarted = 0 -- Reset the hold timer
-											end
-										end)
-									end
-								end
-										
-										-- Function to detect when dragging stops
-								local function onInputEnded(input)
-									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-										dragging = false
-										holdStarted = 0 -- Reset the hold timer
-									end
-								end
-
-										-- Detect input movement (for both mouse and touch)
-								local function onInputChanged(input)
-									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-										dragInput = input
-									end
-								end
-										
-										-- Connect the events
-								SliderButton.InputBegan:Connect(onInputBegan)
-								SliderButton.InputEnded:Connect(onInputEnded)
-								SliderButton.InputChanged:Connect(onInputChanged)
-										
-										-- RenderStepped updates the position while dragging
-								RunService.RenderStepped:Connect(function()
-									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
-										dragging = true
-									end
-									if dragging and dragInput then
-										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
-										pcall(function()
-											callBackAndSetText(value)
-										end)
-										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
-									end
-								end)
-							end
-							local function GetSliderValue(Value)
-								if tonumber(Value) <= minValue then
-									Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
-									callBackAndSetText(minValue)
-								elseif tonumber(Value) >= maxValue then
-									Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
-									callBackAndSetText(maxValue)
-								else
-									Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
-									callBackAndSetText(Value)
-								end
-							end
-							Sliderbox_2.FocusLost:Connect(function()
-								GetSliderValue(Sliderbox_2.Text)
-							end)
-						end
-					else
-						for i, v in pairs (ListNew) do
-							if typeof(v) == "string" then
-								local SampleItem = Instance.new("Frame")
-								local SampleItemCorner = Instance.new("UICorner")
-								local SampleItemBG = Instance.new("Frame")
-								local SampleItemBGCorner = Instance.new("UICorner")
-								local SampleItemTitle = Instance.new("TextLabel")
-								local SampleItemCheck = Instance.new("ImageButton")
-								local SampleItemButton = Instance.new("TextButton")
-								SampleItem.Name = string.lower(v)
-								SampleItem.Parent = ScrollContainer
-								SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-								SampleItem.BackgroundTransparency = 1.000
-								SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
-								SampleItem.LayoutOrder = 1
-								SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
-								SampleItem.Size = UDim2.new(1, 0, 0, 25)
-								SampleItemCorner.CornerRadius = UDim.new(0, 4)
-								SampleItemCorner.Name = "SampleItemCorner"
-								SampleItemCorner.Parent = SampleItem
-								SampleItemBG.Name = "SampleItemBG"
-								SampleItemBG.Parent = SampleItem
-								SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
-								SampleItemBG.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-								SampleItemBG.BackgroundTransparency = 1
-								SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
-								SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-								SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
-								SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
-								SampleItemBGCorner.Name = "SampleItemBGCorner"
-								SampleItemBGCorner.Parent = SampleItemBG
-								SampleItemTitle.Name = "SampleItemTitle"
-								SampleItemTitle.Parent = SampleItemBG
-								SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-								SampleItemTitle.BackgroundTransparency = 1.000
-								SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
-								SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
-								SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
-								SampleItemTitle.Font = Enum.Font.GothamBlack
-								SampleItemTitle.Text = v
-								SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-								SampleItemTitle.TextSize = 14.000
-								SampleItemTitle.TextStrokeTransparency = 0.500
-								SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
-								SampleItemCheck.Name = "SampleItemCheck"
-								SampleItemCheck.Parent = SampleItemBG
-								SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
-								SampleItemCheck.BackgroundTransparency = 1.000
-								SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
-								SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
-								SampleItemCheck.ZIndex = 2
-								SampleItemCheck.Image = "rbxassetid://3926305904"
-								SampleItemCheck.ImageColor3 = UIColor["Dropdown Selected Check Color"]
-								SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
-								SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
-								SampleItemCheck.ImageTransparency = 1
-								SampleItemButton.Name = "SampleItemButton"
-								SampleItemButton.Parent = SampleItem
-								SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-								SampleItemButton.BackgroundTransparency = 1.000
-								SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-								SampleItemButton.BorderSizePixel = 0
-								SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
-								SampleItemButton.Font = Enum.Font.SourceSans
-								SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
-								SampleItemButton.TextSize = 14.000
-								SampleItemButton.TextTransparency = 1.000
-								SampleItemButton.MouseEnter:Connect(function()
-									if Sel.Value == v then
-										return
-									end
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-									}
-											):Play()
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundTransparency = .7
-									}
-											):Play()
-								end)
-								SampleItemButton.MouseLeave:Connect(function()
-									if Sel.Value == v then
-										return
-									end
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-									}
-											):Play()
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundTransparency = 1
-									}
-											):Play()
-								end)
-								SampleItemButton.MouseButton1Click:Connect(function()
-									if Search then
-										Dropdowntitle.PlaceholderText = Title .. ': ' .. v or ""
-										Sel.Value = v
-									else
-										Dropdowntitle.Text = Title .. ': ' .. v or ""
-										Sel.Value = v
-									end
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundColor3 = UIColor["Dropdown Selected Check Color"]
-									}
-											):Play()
-									TweenService:Create(
-												SampleItemBG,
-												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundTransparency = .5
-									}
-											):Play()
-									if Callback then
-										Callback(v)
-									end
-									if Search then
-										Dropdowntitle.Text = ""
-									end
-									refreshlist()
-								end)
-								if Sel.Value == v then
-									SampleItemBG.BackgroundTransparency = .5;
-									SampleItemBG.BackgroundColor3 = UIColor["Dropdown Selected Check Color"]
-									SampleItem.LayoutOrder = 0
-								end
-							end
-						end
-					end
-				end
-				if Search then
-					Dropdowntitle.Changed:Connect(function()
-						edit()
-						SearchDropdown()
-					end)
-				end
-				if typeof(Default) ~= 'table' then
-					Callback(Default)
-					if Search then
-						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "")
-					else
-						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "")
-					end
-				elseif Slider then
-					Dropdowntitle.Text = ''
-					Dropdowntitle.PlaceholderText = Title .. ': '
-				elseif Selected then
-					if Search then
-						Dropdowntitle.PlaceholderText = Title .. ': '
-					else
-						Dropdowntitle.Text = Title .. ': '
-					end
-				end
-				DropdownButton.MouseButton1Click:Connect(function()
-					refreshlist()
-					isbusy = not isbusy
-					local listsize = isbusy and UDim2.new(1, 0, 0, 170) or UDim2.new(1, 0, 0, 0)
-					local mainsize = isbusy and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 25)
-					local DropCRotation = isbusy and 90 or 0
-					TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Size = listsize
-					}):Play()
-					TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Size = mainsize
-					}):Play()
-					TweenService:Create(ImgDrop, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Rotation = DropCRotation
-					}):Play()
-				end)
-				local dropdownFunction = {
-					rf = refreshlist
-				}
-				function dropdownFunction:ClearText(v)
-					if not Selected then
-						if Search then
-							Dropdowntitle.PlaceholderText = Title .. ': ' .. (v or "")
-						else
-							Dropdowntitle.Text = Title .. ': ' .. (v or "")
-						end
-					else
-						Dropdowntitle.Text = Title .. ': ' .. (v or "")
-					end
-				end
-				function dropdownFunction:GetNewList(List)
-					Sel.Value = ""
-							--refreshlist()
-					isbusy = false
-					local listsize = isbusy and UDim2.new(1, 0, 0, 170) or UDim2.new(1, 0, 0, 0)
-					local mainsize = isbusy and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 25)
-					local DropCRotation = isbusy and 90 or 0
-					TweenService:Create(Dropdownlisttt, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Size = listsize
-					}):Play()
-					TweenService:Create(DropdownFrame, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Size = mainsize
-					}):Play()
-					TweenService:Create(ImgDrop, TweenInfo.new(getgenv().UIColor["Tween Animation 2 Speed"]), {
-						Rotation = DropCRotation
-					}):Play()
-					ListNew = {}
-					ListNew = List
-					refreshlist()
-					if Search then
-						Dropdowntitle.PlaceholderText = Title .. ': '
-					else
-						Dropdowntitle.Text = Title .. ': '
-					end
-				end
-				local controlData = {
-    Name = Title,
-    Section = DropdownFrame,
-    Element = DropdownFrame,
-    SectionName = Section.Name,
-    TabName = Page_Name,
-    TabButton = PageName
-}
-table.insert(getgenv().AllControls, controlData)
-				return dropdownFunction
-			end
 function sectionFunction:AddButton2(Setting)
     Setting = Setting or {}
     local Title = tostring(Setting.Title or "Button")
