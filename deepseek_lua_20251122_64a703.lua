@@ -2537,6 +2537,8 @@ function sectionFunction:AddMultiDropdown(idk, Setting)
         end
     end
 
+	refreshlist()
+				
     local controlData = {
         Name = Title,
         Section = DropdownFrame,
