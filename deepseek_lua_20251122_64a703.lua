@@ -725,79 +725,119 @@ function Library:CreateWindow(Setting)
 	Shadow.ScaleType = Enum.ScaleType.Slice
 	Shadow.SliceCenter = Rect.new(24, 24, 276, 276)
 
--- Thêm biến toàn cục để lưu các controls
+-- ========== SEARCH SYSTEM SETUP ==========
 getgenv().AllControls = {}
 
--- Function để search toàn bộ tab
+-- Function đăng ký control
+local function RegisterControl(Title, ButtonFrame, Section, SectionName, Page_Name, PageName)
+    local controlData = {
+        Name = Title,
+        Section = ButtonFrame,
+        Element = ButtonFrame,
+        SectionName = SectionName,
+        TabName = Page_Name,
+        TabButton = PageName
+    }
+    table.insert(getgenv().AllControls, controlData)
+end
+
+-- Function search chính
 local function GlobalSearch(searchText)
     searchText = string.lower(searchText)
     
+    -- Nếu search rỗng, hiện tất cả
     if searchText == "" then
-        -- Hiển thị tất cả
         for _, control in pairs(getgenv().AllControls) do
-            control.TabButton.Visible = true
-            control.Section.Visible = true
-            control.Element.Visible = true
-        end
-        -- Hiển thị tất cả tab
-        for _, tab in pairs(ControlList:GetChildren()) do
-            if not tab:IsA('UIListLayout') then
-                tab.Visible = true
+            if control.TabButton and control.TabButton.Parent then
+                control.TabButton.Visible = true
+            end
+            if control.Section and control.Section.Parent then
+                control.Section.Visible = true
+            end
+            if control.Element and control.Element.Parent then
+                control.Element.Visible = true
             end
         end
         return
     end
     
-    -- Ẩn tất cả trước
+    -- Ẩn tất cả trước khi search
     for _, control in pairs(getgenv().AllControls) do
-        control.Section.Visible = false
-        control.Element.Visible = false
-    end
-    
-    -- Ẩn tất cả tab
-    for _, tab in pairs(ControlList:GetChildren()) do
-        if not tab:IsA('UIListLayout') then
-            tab.Visible = false
+        if control.Section and control.Section.Parent then
+            control.Section.Visible = false
+        end
+        if control.Element and control.Element.Parent then
+            control.Element.Visible = false
+        end
+        if control.TabButton and control.TabButton.Parent then
+            control.TabButton.Visible = false
         end
     end
     
-    -- Tìm và hiển thị các controls phù hợp
+    -- Tìm kiếm và hiển thị
     local foundTabs = {}
-    local foundSections = {} -- THÊM: Lưu các section có kết quả
+    local sectionsToShow = {}
     
     for _, control in pairs(getgenv().AllControls) do
         local elementName = string.lower(control.Name or "")
         local sectionName = string.lower(control.SectionName or "")
         
-        if string.find(elementName, searchText) or string.find(sectionName, searchText) then
-            control.Element.Visible = true
-            control.TabButton.Visible = true
-            foundTabs[control.TabName] = true
-            foundSections[control.Section] = true -- ĐÁNH DẤU SECTION CÓ KẾT QUẢ
+        local elementMatch = string.find(elementName, searchText)
+        local sectionMatch = string.find(sectionName, searchText)
+        
+        -- CASE 1: Cả element VÀ section đều khớp
+        if elementMatch and sectionMatch then
+            if control.Element and control.Element.Parent then
+                control.Element.Visible = true
+            end
+            if control.Section and control.Section.Parent then
+                control.Section.Visible = true
+                sectionsToShow[control.Section] = true
+            end
+            if control.TabButton and control.TabButton.Parent then
+                control.TabButton.Visible = true
+                foundTabs[control.TabName] = true
+            end
+        
+        -- CASE 2: Chỉ ELEMENT khớp (section không khớp)
+        elseif elementMatch then
+            if control.Element and control.Element.Parent then
+                control.Element.Visible = true
+            end
+            -- KHÔNG hiện section vì tên không khớp
+            if control.Section and control.Section.Parent then
+                control.Section.Visible = false
+            end
+            if control.TabButton and control.TabButton.Parent then
+                control.TabButton.Visible = true
+                foundTabs[control.TabName] = true
+            end
+        
+        -- CASE 3: Chỉ SECTION khớp
+        elseif sectionMatch then
+            if control.Section and control.Section.Parent then
+                control.Section.Visible = true
+                sectionsToShow[control.Section] = true
+            end
+            -- Hiện các element trong section này (tùy chọn)
+            if control.Element and control.Element.Parent then
+                control.Element.Visible = true
+            end
+            if control.TabButton and control.TabButton.Parent then
+                control.TabButton.Visible = true
+                foundTabs[control.TabName] = true
+            end
         end
     end
     
-    -- HIỆN CÁC SECTION CÓ KẾT QUẢ
-    for section, _ in pairs(foundSections) do
+    -- Đảm bảo các sections được hiển thị đúng
+    for section, _ in pairs(sectionsToShow) do
         if section and section.Parent then
             section.Visible = true
         end
     end
-    
-    -- Hiển thị các tab có kết quả
-    for tabName, _ in pairs(foundTabs) do
-        for _, tab in pairs(ControlList:GetChildren()) do
-            if not tab:IsA('UIListLayout') and string.find(tab.Name, tabName) then
-                tab.Visible = true
-            end
-        end
-    end
 end
 
--- Kết nối sự kiện search
-SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    GlobalSearch(SearchBox.Text)
-end)
 	local Main_Function = {}
 
 	local LayoutOrderBut = -1
@@ -1279,46 +1319,24 @@ end)
 
 
 			function sectionFunction:AddDropdown(idk, Setting)
-                Setting = Setting or {}
-                local Title = tostring(Setting.Text or Setting.Title or "Dropdown")
-                local List = Setting.Values or {}
-                local Search = Setting.Search or false
-                local Selected = Setting.Selected or false
-                local Slider = Setting.Slider or false
-                local SliderRelease = Setting.SliderRelease or false
-                local Multi = Setting.Multi or false -- THÊM MULTI MODE
-                
-                -- XỬ LÝ DEFAULT CHO MULTI MODE
-                local Default
-                local SelectedValues = {}
-                
-                if Multi then
-                    Default = Setting.Default or {}
-                    if type(Default) == "string" then
-                        Default = {Default}
-                    elseif type(Default) == "number" then
-                        Default = {List[Default]}
-                    end
-                    for _, value in pairs(Default) do
-                        if table.find(List, value) then
-                            SelectedValues[value] = true
+				local Title = tostring(Setting.Title)
+				local List = Setting.Values
+				local Search = Setting.Search or false
+				local Selected = Setting.Selected or false
+				local Slider = Setting.Slider or false
+				local SliderRelease = Setting.SliderRelease or false
+				local Default = (function ()
+                    if Setting.Default then
+                        if type(Setting.Default) == "number" then
+                            return List[Setting.Default]
+                        elseif type(Setting.Default) == "string" then
+                            return Setting.Default
                         end
                     end
-                else
-                    Default = (function ()
-                        if Setting.Default then
-                            if type(Setting.Default) == "number" then
-                                return List[Setting.Default]
-                            elseif type(Setting.Default) == "string" then
-                                return Setting.Default
-                            end
-                        end
-                        return nil
-                    end)()
-                end
-                
-				local Callback = Setting.Callback or function() end
-                local pairs = Setting.SortPairs or pairs
+                    return nil
+                end)()
+				local Callback = Setting.Callback
+				local pairs = Setting.SortPairs or pairs
 				local DropdownFrame = Instance.new("Frame")
 				local Dropdownbg = Instance.new("Frame")
 				local Dropdowncorner = Instance.new("UICorner")
@@ -1337,7 +1355,6 @@ end)
 				else
 					Dropdowntitle = Instance.new("TextLabel")
 				end
-				
 				DropdownFrame.Name = Title .. "DropdownFrame"
 				DropdownFrame.Parent = Section
 				DropdownFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
@@ -1375,63 +1392,24 @@ end)
 				Dropdowntitle.ClipsDescendants = true
 				local Sel = Instance.new("StringValue", Dropdowntitle)
 				Sel.Value = ""
-				
-				if not Multi and Default and table.find(List, Default) then
+				if Default and table.find(List, Default) then
 					Sel.Value = Default
 				end
-				
-				-- FUNCTION UPDATE TITLE CHO MULTI MODE
-				local function updateTitle()
-					if Multi then
-						local selectedCount = 0
-						local selectedNames = {}
-						for value, isSelected in pairs(SelectedValues) do
-							if isSelected then
-								selectedCount = selectedCount + 1
-								table.insert(selectedNames, value)
-							end
-						end
-						
-						if selectedCount == 0 then
-							if Search then
-								Dropdowntitle.PlaceholderText = Title .. ": None"
-							else
-								Dropdowntitle.Text = Title .. ": None"
-							end
-						elseif selectedCount == 1 then
-							if Search then
-								Dropdowntitle.PlaceholderText = Title .. ": " .. selectedNames[1]
-							else
-								Dropdowntitle.Text = Title .. ": " .. selectedNames[1]
-							end
-						else
-							if Search then
-								Dropdowntitle.PlaceholderText = Title .. ": " .. selectedCount .. " selected"
-							else
-								Dropdowntitle.Text = Title .. ": " .. selectedCount .. " selected"
-							end
-						end
+				if not Selected then
+					if Search then
+						Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
+						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
 					else
-						if not Selected then
-							if Search then
-								Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-								Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
-							else
-								Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
-							end
-						else
-							if Search then
-								Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
-								Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
-							else
-								Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
-							end
-						end
+						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
+					end
+				else
+					if Search then
+						Dropdowntitle.PlaceholderColor3 = getgenv().UIColor["Placeholder Text Color"]
+						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "");
+					else
+						Dropdowntitle.Text = Title .. ': ' .. tostring(Default or "");
 					end
 				end
-				
-				updateTitle()
-				
 				Dropdowntitle.TextColor3 = getgenv().UIColor["Text Color"]
 				ImgDrop.Name = "ImgDrop"
 				ImgDrop.Parent = Topdrop
@@ -1522,142 +1500,21 @@ end)
 					end
 				end
 				local ListNew = List
-				
-				-- THÊM FUNCTION TẠO ITEM CHO MULTI MODE VỚI TICK
-				local function createMultiItem(value)
-					local SampleItem = Instance.new("Frame")
-					local SampleItemCorner = Instance.new("UICorner")
-					local SampleItemBG = Instance.new("Frame")
-					local SampleItemBGCorner = Instance.new("UICorner")
-					local SampleItemTitle = Instance.new("TextLabel")
-					local SampleItemCheck = Instance.new("ImageButton")
-					local SampleItemButton = Instance.new("TextButton")
-					
-					SampleItem.Name = string.lower(value)
-					SampleItem.Parent = ScrollContainer
-					SampleItem.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-					SampleItem.BackgroundTransparency = 1.000
-					SampleItem.BorderColor3 = Color3.fromRGB(27, 42, 53)
-					SampleItem.LayoutOrder = 1
-					SampleItem.Position = UDim2.new(0, 0, 0.208333328, 0)
-					SampleItem.Size = UDim2.new(1, 0, 0, 25)
-					
-					SampleItemCorner.CornerRadius = UDim.new(0, 4)
-					SampleItemCorner.Name = "SampleItemCorner"
-					SampleItemCorner.Parent = SampleItem
-					
-					SampleItemBG.Name = "SampleItemBG"
-					SampleItemBG.Parent = SampleItem
-					SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
-					SampleItemBG.BackgroundColor3 = SelectedValues[value] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
-					SampleItemBG.BackgroundTransparency = SelectedValues[value] and 0.5 or 1
-					SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
-					SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-					SampleItemBG.Size = UDim2.new(1, 0, 1, 0)
-					
-					SampleItemBGCorner.CornerRadius = UDim.new(0, 4)
-					SampleItemBGCorner.Name = "SampleItemBGCorner"
-					SampleItemBGCorner.Parent = SampleItemBG
-					
-					SampleItemTitle.Name = "SampleItemTitle"
-					SampleItemTitle.Parent = SampleItemBG
-					SampleItemTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-					SampleItemTitle.BackgroundTransparency = 1.000
-					SampleItemTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
-					SampleItemTitle.Position = UDim2.new(0, 10, 0, 0)
-					SampleItemTitle.Size = UDim2.new(1, -40, 0, 25)
-					SampleItemTitle.Font = Enum.Font.GothamBlack
-					SampleItemTitle.Text = value
-					SampleItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-					SampleItemTitle.TextSize = 14.000
-					SampleItemTitle.TextStrokeTransparency = 0.500
-					SampleItemTitle.TextXAlignment = Enum.TextXAlignment.Left
-					
-					-- TICK CHỈ CHO MULTI MODE
-					SampleItemCheck.Name = "SampleItemCheck"
-					SampleItemCheck.Parent = SampleItemBG
-					SampleItemCheck.AnchorPoint = Vector2.new(1, 0.5)
-					SampleItemCheck.BackgroundTransparency = 1.000
-					SampleItemCheck.Position = UDim2.new(1, 0, 0.5, 0)
-					SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
-					SampleItemCheck.ZIndex = 2
-					SampleItemCheck.Image = "rbxassetid://3926305904"
-					SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
-					SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
-					SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
-					SampleItemCheck.ImageTransparency = SelectedValues[value] and 0 or 1
-					
-					SampleItemButton.Name = "SampleItemButton"
-					SampleItemButton.Parent = SampleItem
-					SampleItemButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-					SampleItemButton.BackgroundTransparency = 1.000
-					SampleItemButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-					SampleItemButton.BorderSizePixel = 0
-					SampleItemButton.Size = UDim2.new(1, 0, 1, 0)
-					SampleItemButton.Font = Enum.Font.SourceSans
-					SampleItemButton.TextColor3 = getgenv().UIColor["Text Color"]
-					SampleItemButton.TextSize = 14.000
-					SampleItemButton.TextTransparency = 1.000
-					
-					SampleItemButton.MouseEnter:Connect(function()
-						if not SelectedValues[value] then
-							TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-								BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-								BackgroundTransparency = 0.7
-							}):Play()
-						end
-					end)
-					
-					SampleItemButton.MouseLeave:Connect(function()
-						if not SelectedValues[value] then
-							TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-								BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-								BackgroundTransparency = 1
-							}):Play()
-						end
-					end)
-					
-					SampleItemButton.MouseButton1Click:Connect(function()
-						SelectedValues[value] = not SelectedValues[value]
-						
-						TweenService:Create(SampleItemCheck, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-							ImageTransparency = SelectedValues[value] and 0 or 1
-						}):Play()
-						
-						TweenService:Create(SampleItemBG, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-							BackgroundColor3 = SelectedValues[value] and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255),
-							BackgroundTransparency = SelectedValues[value] and 0.5 or 1
-						}):Play()
-						
-						updateTitle()
-						
-						local selectedArray = {}
-						for val, isSel in pairs(SelectedValues) do
-							if isSel then
-								table.insert(selectedArray, val)
-							end
-						end
-						Callback(selectedArray)
-					end)
-				end
-				
 				local function refreshlist(SortPairs)
 					pairs = SortPairs or pairs
 					clear_object_in_list()
 					searchtable = {}
-					
-					-- THÊM MULTI MODE VÀO LOGIC
-					if Multi then
-						for i, v in pairs(ListNew) do
-							if typeof(v) == "string" then
-								table.insert(searchtable, string.lower(v))
-								createMultiItem(v)
-							end
-						end
-					elseif Selected then
-						for i, v in pairs (ListNew) do
+					for i, v in pairs(ListNew) do
+						if Selected then
 							table.insert(searchtable, string.lower(i))
-							-- ... (giữ nguyên code Selected mode gốc của bạn)
+						elseif Slider then
+							table.insert(searchtable, string.lower(v['Title']))
+						else
+							table.insert(searchtable, string.lower(v))
+						end
+					end
+					if Selected then
+						for i, v in pairs (ListNew) do
 							local SampleItem = Instance.new("Frame")
 							local SampleItemCorner = Instance.new("UICorner")
 							local SampleItemBG = Instance.new("Frame")
@@ -1679,7 +1536,7 @@ end)
 							SampleItemBG.Name = "SampleItemBG"
 							SampleItemBG.Parent = SampleItem
 							SampleItemBG.AnchorPoint = Vector2.new(0.5, 0.5)
-							SampleItemBG.BackgroundColor3 = v and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+							SampleItemBG.BackgroundColor3 = v and UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
 							SampleItemBG.BackgroundTransparency = v and .5 or 1
 							SampleItemBG.BorderColor3 = Color3.fromRGB(27, 42, 53)
 							SampleItemBG.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1708,7 +1565,7 @@ end)
 							SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
 							SampleItemCheck.ZIndex = 2
 							SampleItemCheck.Image = "rbxassetid://3926305904"
-							SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+							SampleItemCheck.ImageColor3 = UIColor["Dropdown Selected Check Color"]
 							SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
 							SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
 							SampleItemCheck.ImageTransparency = v and 0 or 1
@@ -1768,7 +1625,7 @@ end)
 								TweenService:Create(
 											SampleItemBG,
 											TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-									BackgroundColor3 = v and getgenv().UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
+									BackgroundColor3 = v and UIColor["Dropdown Selected Check Color"] or Color3.fromRGB(255, 255, 255)
 								}
 										):Play()
 								TweenService:Create(
@@ -1790,8 +1647,6 @@ end)
 						end
 					elseif Slider then
 						for i, v in pairs(ListNew) do
-							table.insert(searchtable, string.lower(v['Title']))
-							-- ... (giữ nguyên code Slider mode gốc của bạn)
 							local TitleText = tostring(v.Title) or ""
 							local minValue = tonumber(v.Min) or 0
 							local maxValue = tonumber(v.Max) or 100
@@ -1963,6 +1818,60 @@ end)
 										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
 									end
 								end)
+							else
+								local dragging = false
+								local dragInput
+								local holdTime = 0 -- Time to hold before dragging is enabled
+								local holdStarted = 0
+
+										-- Function to detect the start of dragging (for both mouse and touch)
+								local function onInputBegan(input)
+									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+										holdStarted = tick() -- Record the time when holding starts
+										
+												-- Listen for release to stop dragging
+										input.Changed:Connect(function()
+											if input.UserInputState == Enum.UserInputState.End then
+												dragging = false
+												holdStarted = 0 -- Reset the hold timer
+											end
+										end)
+									end
+								end
+										
+										-- Function to detect when dragging stops
+								local function onInputEnded(input)
+									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+										dragging = false
+										holdStarted = 0 -- Reset the hold timer
+									end
+								end
+
+										-- Detect input movement (for both mouse and touch)
+								local function onInputChanged(input)
+									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+										dragInput = input
+									end
+								end
+										
+										-- Connect the events
+								SliderButton.InputBegan:Connect(onInputBegan)
+								SliderButton.InputEnded:Connect(onInputEnded)
+								SliderButton.InputChanged:Connect(onInputChanged)
+										
+										-- RenderStepped updates the position while dragging
+								RunService.RenderStepped:Connect(function()
+									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
+										dragging = true
+									end
+									if dragging and dragInput then
+										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
+										pcall(function()
+											callBackAndSetText(value)
+										end)
+										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
+									end
+								end)
 							end
 							local function GetSliderValue(Value)
 								if tonumber(Value) <= minValue then
@@ -1983,8 +1892,6 @@ end)
 					else
 						for i, v in pairs (ListNew) do
 							if typeof(v) == "string" then
-								table.insert(searchtable, string.lower(v))
-								-- ... (giữ nguyên code normal mode gốc của bạn)
 								local SampleItem = Instance.new("Frame")
 								local SampleItemCorner = Instance.new("UICorner")
 								local SampleItemBG = Instance.new("Frame")
@@ -2035,7 +1942,7 @@ end)
 								SampleItemCheck.Size = UDim2.new(0, 25, 0, 25)
 								SampleItemCheck.ZIndex = 2
 								SampleItemCheck.Image = "rbxassetid://3926305904"
-								SampleItemCheck.ImageColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+								SampleItemCheck.ImageColor3 = UIColor["Dropdown Selected Check Color"]
 								SampleItemCheck.ImageRectOffset = Vector2.new(312, 4)
 								SampleItemCheck.ImageRectSize = Vector2.new(24, 24)
 								SampleItemCheck.ImageTransparency = 1
@@ -2095,7 +2002,7 @@ end)
 									TweenService:Create(
 												SampleItemBG,
 												TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-										BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+										BackgroundColor3 = UIColor["Dropdown Selected Check Color"]
 									}
 											):Play()
 									TweenService:Create(
@@ -2114,31 +2021,20 @@ end)
 								end)
 								if Sel.Value == v then
 									SampleItemBG.BackgroundTransparency = .5;
-									SampleItemBG.BackgroundColor3 = getgenv().UIColor["Dropdown Selected Check Color"]
+									SampleItemBG.BackgroundColor3 = UIColor["Dropdown Selected Check Color"]
 									SampleItem.LayoutOrder = 0
 								end
 							end
 						end
 					end
 				end
-				
 				if Search then
 					Dropdowntitle.Changed:Connect(function()
 						edit()
 						SearchDropdown()
 					end)
 				end
-				
-				-- XỬ LÝ CALLBACK INITIAL CHO MULTI MODE
-				if Multi then
-					local selectedArray = {}
-					for val, isSel in pairs(SelectedValues) do
-						if isSel then
-							table.insert(selectedArray, val)
-						end
-					end
-					Callback(selectedArray)
-				elseif typeof(Default) ~= 'table' then
+				if typeof(Default) ~= 'table' then
 					Callback(Default)
 					if Search then
 						Dropdowntitle.PlaceholderText = Title .. ': ' .. tostring(Default or "")
@@ -2155,7 +2051,6 @@ end)
 						Dropdowntitle.Text = Title .. ': '
 					end
 				end
-				
 				DropdownButton.MouseButton1Click:Connect(function()
 					refreshlist()
 					isbusy = not isbusy
@@ -2172,11 +2067,9 @@ end)
 						Rotation = DropCRotation
 					}):Play()
 				end)
-				
 				local dropdownFunction = {
 					rf = refreshlist
 				}
-				
 				function dropdownFunction:ClearText(v)
 					if not Selected then
 						if Search then
@@ -2188,9 +2081,9 @@ end)
 						Dropdowntitle.Text = Title .. ': ' .. (v or "")
 					end
 				end
-				
 				function dropdownFunction:GetNewList(List)
 					Sel.Value = ""
+							--refreshlist()
 					isbusy = false
 					local listsize = isbusy and UDim2.new(1, 0, 0, 170) or UDim2.new(1, 0, 0, 0)
 					local mainsize = isbusy and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 25)
@@ -2213,47 +2106,6 @@ end)
 						Dropdowntitle.Text = Title .. ': '
 					end
 				end
-				
-				-- THÊM FUNCTION CHO MULTI MODE
-				function dropdownFunction:SetValue(values)
-					if Multi then
-						SelectedValues = {}
-						for _, value in pairs(values) do
-							if table.find(List, value) then
-								SelectedValues[value] = true
-							end
-						end
-						refreshlist()
-						updateTitle()
-						
-						local selectedArray = {}
-						for val, isSel in pairs(SelectedValues) do
-							if isSel then
-								table.insert(selectedArray, val)
-							end
-						end
-						Callback(selectedArray)
-					else
-						Sel.Value = values
-						updateTitle()
-						Callback(values)
-					end
-				end
-				
-				function dropdownFunction:GetValue()
-					if Multi then
-						local selectedArray = {}
-						for val, isSel in pairs(SelectedValues) do
-							if isSel then
-								table.insert(selectedArray, val)
-							end
-						end
-						return selectedArray
-					else
-						return Sel.Value
-					end
-				end
-				
 				local controlData = {
 					Name = Title,
 					Section = DropdownFrame,
@@ -2263,10 +2115,9 @@ end)
 					TabButton = PageName
 				}
 				table.insert(getgenv().AllControls, controlData)
-				
 				return dropdownFunction
 			end
-
+			
 function sectionFunction:AddButton(Setting)
     Setting = Setting or {}
     
