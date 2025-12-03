@@ -572,7 +572,7 @@ function Library:CreateWindow(Setting)
 	TextLabelMain.Parent = TopMain
 	TextLabelMain.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
 	TextLabelMain.BackgroundTransparency = 1.000
-	TextLabelMain.Position = UDim2.new(0, 35, 0, 0)
+	TextLabelMain.Position = UDim2.new(0, 220, 0, 0)
 	TextLabelMain.Size = UDim2.new(1, -35, 1, 0)
 	TextLabelMain.Font = Enum.Font.GothamBold
 	TextLabelMain.RichText = true
@@ -1319,8 +1319,9 @@ end
 
 
 			function sectionFunction:AddDropdown(idk, Setting)
-				local Title = tostring(Setting.Title)
-				local List = Setting.Values
+				Setting = Setting or {}
+                local Title = tostring(Setting.Text or Setting.Title or "Dropdown")
+                local List = Setting.Values or {}
 				local Search = Setting.Search or false
 				local Selected = Setting.Selected or false
 				local Slider = Setting.Slider or false
@@ -1335,7 +1336,7 @@ end
                     end
                     return nil
                 end)()
-				local Callback = Setting.Callback
+				local Callback = Setting.Callback or function() end
 				local pairs = Setting.SortPairs or pairs
 				local DropdownFrame = Instance.new("Frame")
 				local Dropdownbg = Instance.new("Frame")
