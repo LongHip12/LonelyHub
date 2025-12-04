@@ -1074,145 +1074,183 @@ end)
 
 		local pageFunction = {}
 
-		function pageFunction:AddSection(Section_Name, Toggleable, SectionGap, SectionColor)
-			local Toggleable = Toggleable or false
-			local Section = Instance.new("Frame")
-			local UICorner = Instance.new("UICorner")
-			local Topsec = Instance.new("Frame")
-			local Sectiontitle = Instance.new("TextLabel")
-			local Linesec = Instance.new("Frame")
-			local UIGradient = Instance.new("UIGradient")
-			local SectionList = Instance.new("UIListLayout")
-			Section.Name = Section_Name .. "_Dot"
-			Section.Parent = PageList
-			Section.Size = UDim2.new(1, -5, 0, 30)
-			Section.BackgroundColor3 = getgenv().UIColor["Background 3 Color"]
-			Section.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-			Section.ClipsDescendants = true
-			UICorner.CornerRadius = UDim.new(0, 4)
-			UICorner.Parent = Section
-			Topsec.Name = "Topsec"
-			Topsec.Parent = Section
-			Topsec.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-			Topsec.BackgroundTransparency = 1.000
-			Topsec.Size = UDim2.new(0, 415, 0, 30)
-			Sectiontitle.Name = "Sectiontitle"
-			Sectiontitle.Parent = Topsec
-			Sectiontitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-			Sectiontitle.BackgroundTransparency = 1.000
-			Sectiontitle.Size = UDim2.new(1, 0, 1, 0)
-			Sectiontitle.Font = Enum.Font.GothamBold
-			Sectiontitle.Text = Section_Name
-			Sectiontitle.TextSize = 14.000
-			Sectiontitle.TextColor3 = SectionColor and SectionColor or  getgenv().UIColor["Section Text Color"]
-			Linesec.Name = "Linesec"
-			Linesec.Parent = Topsec
-			Linesec.AnchorPoint = Vector2.new(0.5, 1)
-			Linesec.BorderSizePixel = 0
-			Linesec.Position = UDim2.new(0.5, 0, 1, -2)
-			Linesec.Size = UDim2.new(1, -10, 0, 2)
-			Linesec.BackgroundColor3 = SectionColor and SectionColor or getgenv().UIColor["Section Underline Color"]
-			local SizeSectionY
-			local sectionIsVisible = false
-			if Toggleable then
-				local VisibilitySectionFrame = Instance.new("Frame")
-				local VisibilitySectionFrameCorner = Instance.new("UICorner")
-				local visibility = Instance.new("ImageButton")
-				local visibility_off = Instance.new("ImageButton")
-				local VisibilityButton = Instance.new("TextButton")
-				VisibilityButton.Name = "VisibilityButton"
-				VisibilityButton.Parent = Topsec
-				VisibilityButton.AnchorPoint = Vector2.new(1, 0.5)
-				VisibilityButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				VisibilityButton.BackgroundTransparency = 1.000
-				VisibilityButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				VisibilityButton.BorderSizePixel = 0
-				VisibilityButton.Font = Enum.Font.SourceSans
-				VisibilityButton.Text = ""
-				VisibilityButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-				VisibilityButton.TextSize = 14.000
-				VisibilityButton.ZIndex = 2
-				VisibilityButton.Position = UDim2.new(1, -5, 0.5, 0)
-				VisibilityButton.Size = UDim2.new(0, 20, 0, 20)
-				VisibilitySectionFrame.Name = "VisibilitySectionFrame"
-				VisibilitySectionFrame.Parent = Topsec
-				VisibilitySectionFrame.AnchorPoint = Vector2.new(1, 0.5)
-				VisibilitySectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-				VisibilitySectionFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				VisibilitySectionFrame.BorderSizePixel = 0
-				VisibilitySectionFrame.Position = UDim2.new(1, -5, 0.5, 0)
-				VisibilitySectionFrame.Size = UDim2.new(0, 20, 0, 20)
-				VisibilitySectionFrameCorner.CornerRadius = UDim.new(0, 4)
-				VisibilitySectionFrameCorner.Name = "VisibilitySectionFrameCorner"
-				VisibilitySectionFrameCorner.Parent = VisibilitySectionFrame
-				visibility.Name = "visibility"
-				visibility.Parent = VisibilitySectionFrame
-				visibility.AnchorPoint = Vector2.new(0.5, 0.5)
-				visibility.BackgroundTransparency = 1.000
-				visibility.LayoutOrder = 4
-				visibility.Position = UDim2.new(0.5, 0, 0.5, 0)
-				visibility.Size = UDim2.new(1, -4, 1, -4)
-				visibility.ZIndex = 2
-				visibility.Image = "rbxassetid://3926307971"
-				visibility.ImageRectOffset = Vector2.new(84, 44)
-				visibility.ImageRectSize = Vector2.new(36, 36)
-				visibility.ImageTransparency = 1
-				visibility_off.Name = "visibility_off"
-				visibility_off.Parent = VisibilitySectionFrame
-				visibility_off.AnchorPoint = Vector2.new(0.5, 0.5)
-				visibility_off.BackgroundTransparency = 1.000
-				visibility_off.LayoutOrder = 4
-				visibility_off.Position = UDim2.new(0.5, 0, 0.5, 0)
-				visibility_off.Size = UDim2.new(1, -4, 1, -4)
-				visibility_off.ZIndex = 2
-				visibility_off.Image = "rbxassetid://3926307971"
-				visibility_off.ImageRectOffset = Vector2.new(564, 44)
-				visibility_off.ImageRectSize = Vector2.new(36, 36)
-				visibility_off.ImageTransparency = 0
-				VisibilityButton.MouseButton1Down:Connect(function()
-					sectionIsVisible = not sectionIsVisible
-					TweenService:Create(visibility, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"] / 2), {
-						ImageTransparency = sectionIsVisible and 0 or 1
-					}):Play()
-					wait(getgenv().UIColor["Tween Animation 1 Speed"] / 4)
-					TweenService:Create(visibility_off, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"] / 2), {
-						ImageTransparency = sectionIsVisible and 1 or 0
-					}):Play()
-					TweenService:Create(Section, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-						Size =  UDim2.new(1, -5, 0, (sectionIsVisible and SizeSectionY or 30))
-					}):Play()
-				end)
-			end
-			if SectionGap then
-				local SectionGap = Instance.new("Frame")
-				SectionGap.Name = "SectionGap"
-				SectionGap.Parent = PageList
-				SectionGap.Size = UDim2.new(1, -5, 0, 30)
-				SectionGap.ClipsDescendants = true
-				SectionGap.Transparency = 1
-			end
-			UIGradient.Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0.00, 1.00),
-				NumberSequenceKeypoint.new(0.50, 0.00),
-				NumberSequenceKeypoint.new(0.51, 0.02),
-				NumberSequenceKeypoint.new(1.00, 1.00)
-			}
-			UIGradient.Parent = Linesec
-			SectionList.Name = "SectionList"
-			SectionList.Parent = Section
-			SectionList.SortOrder = Enum.SortOrder.LayoutOrder
-			SectionList.Padding = UDim.new(0, 5)
-			SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-				if (not Toggleable) then
-					Section.Size = UDim2.new(1, -5, 0, SectionList.AbsoluteContentSize.Y + 5)
-				end
-				SizeSectionY = SectionList.AbsoluteContentSize.Y + 5
-				if sectionIsVisible then
-					TweenService:Create(Section, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
-						Size =  UDim2.new(1, -5, 0, SizeSectionY)
-					}):Play()
-				end
-			end)
+function pageFunction:AddSection(Section_Name, Toggleable, SectionGap, SectionColor)
+	local Toggleable = Toggleable or false
+	local Section = Instance.new("Frame")
+	local UICorner = Instance.new("UICorner")
+	local Topsec = Instance.new("Frame")
+	local Sectiontitle = Instance.new("TextLabel")
+	local Linesec = Instance.new("Frame")
+	local UIGradient = Instance.new("UIGradient")
+	local SectionList = Instance.new("UIListLayout")
+	
+	Section.Name = Section_Name .. "_Dot"
+	Section.Parent = PageList
+	Section.Size = UDim2.new(1, -5, 0, 30)
+	Section.BackgroundColor3 = getgenv().UIColor["Background 3 Color"]
+	Section.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
+	Section.ClipsDescendants = true
+
+	local sectionStroke = Instance.new("UIStroke", Section)
+	sectionStroke.Color = Color3.fromRGB(90, 90, 70)
+	sectionStroke.Thickness = 1
+
+	local sectionGradient = Instance.new("UIGradient", Section)
+	sectionGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(38, 38, 46)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(48, 48, 56))
+	}
+	sectionGradient.Rotation = 90
+	sectionGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 0.05),
+		NumberSequenceKeypoint.new(1, 0.15)
+	}
+
+	UICorner.CornerRadius = UDim.new(0, 4)
+	UICorner.Parent = Section
+
+	Topsec.Name = "Topsec"
+	Topsec.Parent = Section
+	Topsec.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+	Topsec.BackgroundTransparency = 1.000
+	Topsec.Size = UDim2.new(0, 415, 0, 30)
+
+	Sectiontitle.Name = "Sectiontitle"
+	Sectiontitle.Parent = Topsec
+	Sectiontitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+	Sectiontitle.BackgroundTransparency = 1.000
+	Sectiontitle.Size = UDim2.new(1, 0, 1, 0)
+	Sectiontitle.Font = Enum.Font.GothamBold
+	Sectiontitle.Text = Section_Name
+	Sectiontitle.TextSize = 14.000
+	Sectiontitle.TextColor3 = SectionColor and SectionColor or getgenv().UIColor["Section Text Color"]
+
+	Linesec.Name = "Linesec"
+	Linesec.Parent = Topsec
+	Linesec.AnchorPoint = Vector2.new(0.5, 1)
+	Linesec.BorderSizePixel = 0
+	Linesec.Position = UDim2.new(0.5, 0, 1, -2)
+	Linesec.Size = UDim2.new(1, -10, 0, 2)
+	Linesec.BackgroundColor3 = SectionColor and SectionColor or getgenv().UIColor["Section Underline Color"]
+
+	local LineShadow = Instance.new("ImageLabel", Linesec)
+	LineShadow.Name = "LineShadow"
+	LineShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	LineShadow.BackgroundColor3 = Color3.fromRGB(163,162,165)
+	LineShadow.BackgroundTransparency = 1
+	LineShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	LineShadow.Size = UDim2.new(1, 8, 1, 8)
+	LineShadow.ZIndex = 0
+	LineShadow.Image = "rbxassetid://5028857084"
+	LineShadow.ImageTransparency = 0.6
+	LineShadow.ScaleType = Enum.ScaleType.Slice
+	LineShadow.SliceCenter = Rect.new(24, 24, 276, 276)
+
+	UIGradient.Transparency = NumberSequence.new{
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(0.51, 0.02),
+		NumberSequenceKeypoint.new(1, 1)
+	}
+	UIGradient.Parent = Linesec
+
+	SectionList.Name = "SectionList"
+	SectionList.Parent = Section
+	SectionList.SortOrder = Enum.SortOrder.LayoutOrder
+	SectionList.Padding = UDim.new(0, 5)
+
+	local SizeSectionY
+	local sectionIsVisible = false
+	if Toggleable then
+		local VisibilitySectionFrame = Instance.new("Frame")
+		local VisibilitySectionFrameCorner = Instance.new("UICorner")
+		local visibility = Instance.new("ImageButton")
+		local visibility_off = Instance.new("ImageButton")
+		local VisibilityButton = Instance.new("TextButton")
+		VisibilityButton.Name = "VisibilityButton"
+		VisibilityButton.Parent = Topsec
+		VisibilityButton.AnchorPoint = Vector2.new(1, 0.5)
+		VisibilityButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		VisibilityButton.BackgroundTransparency = 1.000
+		VisibilityButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		VisibilityButton.BorderSizePixel = 0
+		VisibilityButton.Font = Enum.Font.SourceSans
+		VisibilityButton.Text = ""
+		VisibilityButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+		VisibilityButton.TextSize = 14.000
+		VisibilityButton.ZIndex = 2
+		VisibilityButton.Position = UDim2.new(1, -5, 0.5, 0)
+		VisibilityButton.Size = UDim2.new(0, 20, 0, 20)
+		VisibilitySectionFrame.Name = "VisibilitySectionFrame"
+		VisibilitySectionFrame.Parent = Topsec
+		VisibilitySectionFrame.AnchorPoint = Vector2.new(1, 0.5)
+		VisibilitySectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		VisibilitySectionFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		VisibilitySectionFrame.BorderSizePixel = 0
+		VisibilitySectionFrame.Position = UDim2.new(1, -5, 0.5, 0)
+		VisibilitySectionFrame.Size = UDim2.new(0, 20, 0, 20)
+		VisibilitySectionFrameCorner.CornerRadius = UDim.new(0, 4)
+		VisibilitySectionFrameCorner.Name = "VisibilitySectionFrameCorner"
+		VisibilitySectionFrameCorner.Parent = VisibilitySectionFrame
+		visibility.Name = "visibility"
+		visibility.Parent = VisibilitySectionFrame
+		visibility.AnchorPoint = Vector2.new(0.5, 0.5)
+		visibility.BackgroundTransparency = 1.000
+		visibility.LayoutOrder = 4
+		visibility.Position = UDim2.new(0.5, 0, 0.5, 0)
+		visibility.Size = UDim2.new(1, -4, 1, -4)
+		visibility.ZIndex = 2
+		visibility.Image = "rbxassetid://3926307971"
+		visibility.ImageRectOffset = Vector2.new(84, 44)
+		visibility.ImageRectSize = Vector2.new(36, 36)
+		visibility.ImageTransparency = 1
+		visibility_off.Name = "visibility_off"
+		visibility_off.Parent = VisibilitySectionFrame
+		visibility_off.AnchorPoint = Vector2.new(0.5, 0.5)
+		visibility_off.BackgroundTransparency = 1.000
+		visibility_off.LayoutOrder = 4
+		visibility_off.Position = UDim2.new(0.5, 0, 0.5, 0)
+		visibility_off.Size = UDim2.new(1, -4, 1, -4)
+		visibility_off.ZIndex = 2
+		visibility_off.Image = "rbxassetid://3926307971"
+		visibility_off.ImageRectOffset = Vector2.new(564, 44)
+		visibility_off.ImageRectSize = Vector2.new(36, 36)
+		visibility_off.ImageTransparency = 0
+		VisibilityButton.MouseButton1Down:Connect(function()
+			sectionIsVisible = not sectionIsVisible
+			TweenService:Create(visibility, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"] / 2), {
+				ImageTransparency = sectionIsVisible and 0 or 1
+			}):Play()
+			wait(getgenv().UIColor["Tween Animation 1 Speed"] / 4)
+			TweenService:Create(visibility_off, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"] / 2), {
+				ImageTransparency = sectionIsVisible and 1 or 0
+			}):Play()
+			TweenService:Create(Section, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+				Size = UDim2.new(1, -5, 0, (sectionIsVisible and SizeSectionY or 30))
+			}):Play()
+		end)
+	end
+	if SectionGap then
+		local SectionGap = Instance.new("Frame")
+		SectionGap.Name = "SectionGap"
+		SectionGap.Parent = PageList
+		SectionGap.Size = UDim2.new(1, -5, 0, 30)
+		SectionGap.ClipsDescendants = true
+		SectionGap.Transparency = 1
+	end
+
+	SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		if (not Toggleable) then
+			Section.Size = UDim2.new(1, -5, 0, SectionList.AbsoluteContentSize.Y + 5)
+		end
+		SizeSectionY = SectionList.AbsoluteContentSize.Y + 5
+		if sectionIsVisible then
+			TweenService:Create(Section, TweenInfo.new(getgenv().UIColor["Tween Animation 1 Speed"]), {
+				Size = UDim2.new(1, -5, 0, SizeSectionY)
+			}):Play()
+		end
+	end)
+end
 			local sectionFunction = {}
 			function sectionFunction:AddToggle(idk,Setting)
 				local Title = tostring(Setting.Text)
@@ -1354,54 +1392,164 @@ end)
 				return toggleFunction
 			end
 			function sectionFunction:AddButton(Setting, Callback)
-				local Title = Setting.Text
-				local Callback = Setting.Func
-				local ButtonFrame = Instance.new("Frame")
-				local ButtonBG = Instance.new("Frame")
-				local ButtonCorner = Instance.new("UICorner")
-				local ButtonTitle = Instance.new("TextLabel")
-				local Button = Instance.new("TextButton")
-				ButtonFrame.Name = Title .. 'dot'
-				ButtonFrame.Parent = Section
-				ButtonFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				ButtonFrame.BackgroundTransparency = 1.000
-				ButtonFrame.Position = UDim2.new(0, 0, 0.300000012, 0)
-				ButtonFrame.Size = UDim2.new(1, 0, 0, 25)
-				ButtonBG.Name = "ButtonBG"
-				ButtonBG.Parent = ButtonFrame
-				ButtonBG.AnchorPoint = Vector2.new(0.5, 0.5)
-				ButtonBG.Position = UDim2.new(0.5, 0, 0.5, 0)
-				ButtonBG.Size = UDim2.new(1, -10, 1, 0)
-				ButtonBG.BackgroundColor3 = getgenv().UIColor["Button Color"]
-				ButtonBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
-				ButtonCorner.CornerRadius = UDim.new(0, 4)
-				ButtonCorner.Name = "ButtonCorner"
-				ButtonCorner.Parent = ButtonBG
-				ButtonTitle.Name = "TextColor"
-				ButtonTitle.Parent = ButtonBG
-				ButtonTitle.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				ButtonTitle.BackgroundTransparency = 1.000
-				ButtonTitle.Position = UDim2.new(0, 10, 0, 0)
-				ButtonTitle.Size = UDim2.new(1, -10, 1, 0)
-				ButtonTitle.Font = Enum.Font.GothamBlack
-				ButtonTitle.RichText = true
-				ButtonTitle.Text = Title
-				ButtonTitle.TextSize = 14.000
-				ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
-				ButtonTitle.TextColor3 = getgenv().UIColor["Text Color"]
-				ButtonTitle.TextStrokeTransparency = getgenv().UIColor["Text Stroke Transparency"]
-				Button.Name = "Button"
-				Button.Parent = ButtonBG
-				Button.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-				Button.BackgroundTransparency = 1.000
-				Button.Size = UDim2.new(1, 0, 1, 0)
-				Button.Font = Enum.Font.SourceSans
-				Button.Text = ""
-				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Button.TextSize = 14.000
-				Button.MouseButton1Down:Connect(function()
-					Callback()
-				end)
+				local Button = Instance.new("Frame")
+                local RowBG_1 = Instance.new("Frame")
+                local UICorner_1 = Instance.new("UICorner")
+                local RowHover_1 = Instance.new("Frame")
+                local UICorner_2 = Instance.new("UICorner")
+                local TextColor_1 = Instance.new("TextLabel")
+                local ClickArea_1 = Instance.new("Frame")
+                local UICorner_3 = Instance.new("UICorner")
+                local UIGradient_1 = Instance.new("UIGradient")
+                local ImageLabel_1 = Instance.new("ImageLabel")
+                local Frame_1 = Instance.new("Frame")
+                local UICorner_4 = Instance.new("UICorner")
+                local UIScale_1 = Instance.new("UIScale")
+                local Button_1 = Instance.new("TextButton")
+
+                Button.Name = "Button"
+                Button.Parent = Section
+                Button.BackgroundColor3 = Color3.fromRGB(163,162,165)
+                Button.BackgroundTransparency = 1
+                Button.Size = UDim2.new(1, 0,0, 40)
+
+                RowBG_1.Name = "RowBG"
+                RowBG_1.Parent = Button
+                RowBG_1.AnchorPoint = Vector2.new(0.5, 0.5)
+                RowBG_1.BackgroundColor3 = Color3.fromRGB(38,38,46)
+                RowBG_1.BackgroundTransparency = 0.25
+                RowBG_1.Position = UDim2.new(0.5, 0,0.5, 0)
+                RowBG_1.Size = UDim2.new(1, -10,1, 0)
+                
+                UICorner_1.Parent = RowBG_1
+                UICorner_1.CornerRadius = UDim.new(0,10)
+                
+                RowHover_1.Name = "RowHover"
+                RowHover_1.Parent = RowBG_1
+                RowHover_1.BackgroundColor3 = Color3.fromRGB(48,48,56)
+                RowHover_1.BackgroundTransparency = 1
+                RowHover_1.Size = UDim2.new(1, 0,1, 0)
+                RowHover_1.ZIndex = 2
+                
+                UICorner_2.Parent = RowHover_1
+                UICorner_2.CornerRadius = UDim.new(0,10)
+                
+                TextColor_1.Name = "TextColor"
+                TextColor_1.Parent = RowBG_1
+                TextColor_1.BackgroundColor3 = Color3.fromRGB(163,162,165)
+                TextColor_1.BackgroundTransparency = 1
+                TextColor_1.Position = UDim2.new(0, 12,0, 0)
+                TextColor_1.Size = UDim2.new(1, -110,1, 0)
+                TextColor_1.Font = Enum.Font.GothamBold
+                TextColor_1.Text = "Button"
+                TextColor_1.TextColor3 = Color3.fromRGB(235,235,230)
+                TextColor_1.TextSize = 14
+                TextColor_1.TextStrokeTransparency = 0.8500000238418579
+                TextColor_1.TextXAlignment = Enum.TextXAlignment.Left
+                
+                ClickArea_1.Name = "ClickArea"
+                ClickArea_1.Parent = RowBG_1
+                ClickArea_1.AnchorPoint = Vector2.new(1, 0.5)
+                ClickArea_1.BackgroundColor3 = Color3.fromRGB(163,162,165)
+                ClickArea_1.Position = UDim2.new(1, -8,0.5, 0)
+                ClickArea_1.Size = UDim2.new(0, 94,0, 30)
+                
+                UICorner_3.Parent = ClickArea_1
+                UICorner_3.CornerRadius = UDim.new(0,12)
+                
+                UIGradient_1.Parent = ClickArea_1
+                UIGradient_1.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 241, 196)), ColorSequenceKeypoint.new(0.65, Color3.fromRGB(255, 219, 120)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 198, 92))}
+                UIGradient_1.Rotation = 90
+                
+                ImageLabel_1.Parent = ClickArea_1
+                ImageLabel_1.AnchorPoint = Vector2.new(0.5, 0.5)
+                ImageLabel_1.BackgroundColor3 = Color3.fromRGB(163,162,165)
+                ImageLabel_1.BackgroundTransparency = 1
+                ImageLabel_1.Position = UDim2.new(0.5, 0,0.5, 0)
+                ImageLabel_1.Size = UDim2.new(1, 14,1, 14)
+                ImageLabel_1.ZIndex = 0
+                ImageLabel_1.Image = "rbxassetid://5028857084"
+                ImageLabel_1.ImageTransparency = 0.550000011920929
+                ImageLabel_1.ScaleType = Enum.ScaleType.Slice
+                ImageLabel_1.SliceCenter = Rect.new(24, 24, 276, 276)
+                
+                Frame_1.Parent = ClickArea_1
+                Frame_1.AnchorPoint = Vector2.new(0.5, 0)
+                Frame_1.BackgroundColor3 = Color3.fromRGB(255,255,255)
+                Frame_1.BackgroundTransparency = 0.8500000238418579
+                Frame_1.Position = UDim2.new(0.5, 0,0, 2)
+                Frame_1.Size = UDim2.new(1, -6,0, 10)
+                Frame_1.ZIndex = 2
+                
+                UICorner_4.Parent = Frame_1
+                UICorner_4.CornerRadius = UDim.new(0,10)
+                
+                UIScale_1.Parent = ClickArea_1
+                
+                Button_1.Name = "Button"
+                Button_1.Parent = ClickArea_1
+                Button_1.Active = true
+                Button_1.AutoButtonColor = false
+                Button_1.BackgroundColor3 = Color3.fromRGB(163,162,165)
+                Button_1.BackgroundTransparency = 1
+                Button_1.Size = UDim2.new(1, 0,1, 0)
+                Button_1.Font = Enum.Font.GothamBold
+                Button_1.Text = "Click"
+                Button_1.TextColor3 = Color3.fromRGB(25,28,36)
+                Button_1.TextSize = 13
+
+                -- UIScale mặc định
+                UIScale_1.Scale = 1
+                
+                -- HOVER (chỉ phóng to)
+                local scaleHover = TS:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1.05 })
+                local scaleNormal = TS:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1 })
+                
+                Button_1.MouseEnter:Connect(function()
+                	scaleHover:Play()
+                end)
+                
+                Button_1.MouseLeave:Connect(function()
+                	scaleNormal:Play()
+                end)
+                
+                -- CLICK: ripple giữa + nhún + callback
+                Button_1.MouseButton1Click:Connect(function()
+                	-- NHÚN
+                	TS:Create(UIScale_1, TweenInfo.new(0.06, Enum.EasingStyle.Sine), { Scale = 0.93 }):Play()
+                	task.delay(0.06, function()
+                		TS:Create(UIScale_1, TweenInfo.new(0.06, Enum.EasingStyle.Sine), { Scale = 1 }):Play()
+                	end)
+                
+                	-- RIPPLE GIỮA
+                	local ripple = Instance.new("Frame")
+                	ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                	ripple.Position = UDim2.new(0.5, 0, 0.5, 0) -- giữa
+                	ripple.Size = UDim2.new(0, 0, 0, 0)
+                	ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                	ripple.BackgroundTransparency = 0.6
+                	ripple.ZIndex = 10
+                	ripple.Parent = ClickArea_1
+                
+                	local corner = Instance.new("UICorner")
+                	corner.CornerRadius = UDim.new(1, 0)
+                	corner.Parent = ripple
+                
+                	local rippleTween = TS:Create(
+                		ripple,
+                		TweenInfo.new(0.55, Enum.EasingStyle.Linear),
+                		{ Size = UDim2.new(0, 260, 0, 260), BackgroundTransparency = 1 }
+                	)
+                
+                	rippleTween:Play()
+                	rippleTween.Completed:Connect(function()
+                		ripple:Destroy()
+                	end)
+                
+                	-- CHẠY CALLBACK SAU CÙNG
+                	Callback()
+                end)
+                
                 local f = {}
                 function f:SetTitle(vl)
                     ButtonTitle.Text = vl
@@ -1425,7 +1573,7 @@ end)
 				LabelBG.Parent = LabelFrame
 				LabelBG.AnchorPoint = Vector2.new(0.5, 0)
 				LabelBG.Position = UDim2.new(0.5, 0, 0, 0)
-				LabelBG.Size = UDim2.new(1, -10, 0, -10)
+				LabelBG.Size = UDim2.new(1, -10, 0, -13)
 				LabelBG.BackgroundColor3 = getgenv().UIColor["Label Color"]
 				LabelBG.AutomaticSize = Enum.AutomaticSize.Y
 				LabelBG.BackgroundTransparency = getgenv().UIColor["Background 1 Transparency"]
