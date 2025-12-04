@@ -1561,8 +1561,8 @@ end
                 end
                 local controlData = {
                     Name = Title,
-                    Section = ButtonFrame,
-                    Element = ButtonFrame,
+                    Section = Button,
+                    Element = Button,
                     SectionName = Section.Name,
                     TabName = Page_Name,
                     TabButton = PageName
