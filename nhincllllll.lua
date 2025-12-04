@@ -1502,8 +1502,8 @@ end
                 UIScale_1.Scale = 1
                 
                 -- HOVER (chỉ phóng to)
-                local scaleHover = TS:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1.05 })
-                local scaleNormal = TS:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1 })
+                local scaleHover = TweenService:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1.05 })
+                local scaleNormal = TweenService:Create(UIScale_1, TweenInfo.new(0.12, Enum.EasingStyle.Sine), { Scale = 1 })
                 
                 Button_1.MouseEnter:Connect(function()
                 	scaleHover:Play()
@@ -1515,12 +1515,6 @@ end
                 
                 -- CLICK: ripple giữa + nhún + callback
                 Button_1.MouseButton1Click:Connect(function()
-                	-- NHÚN
-                	TS:Create(UIScale_1, TweenInfo.new(0.06, Enum.EasingStyle.Sine), { Scale = 0.93 }):Play()
-                	task.delay(0.06, function()
-                		TS:Create(UIScale_1, TweenInfo.new(0.06, Enum.EasingStyle.Sine), { Scale = 1 }):Play()
-                	end)
-                
                 	-- RIPPLE GIỮA
                 	local ripple = Instance.new("Frame")
                 	ripple.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1535,7 +1529,7 @@ end
                 	corner.CornerRadius = UDim.new(1, 0)
                 	corner.Parent = ripple
                 
-                	local rippleTween = TS:Create(
+                	local rippleTween = TweenService:Create(
                 		ripple,
                 		TweenInfo.new(0.55, Enum.EasingStyle.Linear),
                 		{ Size = UDim2.new(0, 260, 0, 260), BackgroundTransparency = 1 }
