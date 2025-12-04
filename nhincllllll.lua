@@ -1253,8 +1253,8 @@ function pageFunction:AddSection(Section_Name, Toggleable, SectionGap, SectionCo
 end
 			local sectionFunction = {}
 			function sectionFunction:AddToggle(idk,Setting)
-				local Title = tostring(Setting.Text)
-				local Desc = Setting.Desc
+				local Title = tostring(Setting.Title)
+				local Desc = Setting.Description or Setting.Desc or ""
 				local Default = Setting.Default
 				if Default == nil then
 					Default = false
@@ -1401,6 +1401,8 @@ end
 				return toggleFunction
 			end
 			function sectionFunction:AddButton(Setting, Callback)
+			    local Title = Setting.Text or Setting.Title or ""
+				local Callback = Setting.Func or Setting.Callback or ""
 				local Button = Instance.new("Frame")
                 local RowBG_1 = Instance.new("Frame")
                 local UICorner_1 = Instance.new("UICorner")
