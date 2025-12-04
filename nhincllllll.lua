@@ -1389,6 +1389,15 @@ end
 						ButtonClick()
 					end
 				end
+				local controlData = {
+                    Name = Title,
+                    Section = ToggleFrame,
+                    Element = ToggleFrame,
+                    SectionName = Section.Name,
+                    TabName = Page_Name,
+                    TabButton = PageName
+                }
+                table.insert(getgenv().AllControls, controlData)
 				return toggleFunction
 			end
 			function sectionFunction:AddButton(Setting, Callback)
@@ -1546,8 +1555,17 @@ end
                 
                 local f = {}
                 function f:SetTitle(vl)
-                    ButtonTitle.Text = vl
+                    TextColor_1.Text = vl
                 end
+                local controlData = {
+                    Name = Title,
+                    Section = ButtonFrame,
+                    Element = ButtonFrame,
+                    SectionName = Section.Name,
+                    TabName = Page_Name,
+                    TabButton = PageName
+                }
+                table.insert(getgenv().AllControls, controlData)
                 return f
 			end
 			function sectionFunction:AddLabel(text)
@@ -1595,6 +1613,15 @@ end
 				function labelFunction.SetColor(color)
 					LabelTitle.TextColor3 = color
 				end
+				local controlData = {
+                    Name = Title,
+                    Section = LabelFrame,
+                    Element = LabelFrame,
+                    SectionName = Section.Name,
+                    TabName = Page_Name,
+                    TabButton = PageName
+                }
+                table.insert(getgenv().AllControls, controlData)
 				return labelFunction
 			end
 			function sectionFunction:AddDropdown(idk, Setting)
@@ -2385,6 +2412,15 @@ end
 						Dropdowntitle.Text = Title .. ': '
 					end
 				end
+				local controlData = {
+					Name = Title,
+					Section = DropdownFrame,
+					Element = DropdownFrame,
+					SectionName = Section.Name,
+					TabName = Page_Name,
+					TabButton = PageName
+				}
+				table.insert(getgenv().AllControls, controlData)
 				return dropdownFunction
 			end
 			function sectionFunction:AddKeyBind(Setting, Callback)
@@ -2485,6 +2521,15 @@ end
 						Callback(Default);
 					end;
 				end);
+				local controlData = {
+                    Name = TitleText,
+                    Section = BindFrame,
+                    Element = BindFrame,
+                    SectionName = Section.Name,
+                    TabName = Page_Name,
+                    TabButton = PageName
+                }
+                table.insert(getgenv().AllControls, controlData)
 			end
 			function sectionFunction:AddInput(idk, Setting)
 				local TitleText = tostring(Setting.Text) or ""
@@ -2594,6 +2639,15 @@ end
 					Boxxx.Text = Value
 					Callback(Value)
 				end
+				local controlData = {
+                    Name = TitleText,
+                    Section = BoxFrame,
+                    Element = BoxFrame,
+                    SectionName = Section.Name,
+                    TabName = Page_Name,
+                    TabButton = PageName
+                }
+                table.insert(getgenv().AllControls, controlData)
 				return textbox_function;
 			end
 			function sectionFunction:AddSlider(Setting)
@@ -2787,6 +2841,16 @@ end
 				function slider_function.SetValue(Value)
 					GetSliderValue(Value)
 				end
+			local controlData = {
+                Name = TitleText,
+                Section = SliderFrame,
+                Element = SliderFrame,
+                SectionName = Section.Name,
+                TabName = Page_Name,
+                TabButton = PageName
+            }
+            table.insert(getgenv().AllControls, controlData)
+
 				return slider_function
 			end
 			return sectionFunction
