@@ -427,7 +427,7 @@ local data = [[{
     "Artificial intelligence": "Trí tuệ nhân tạo",
     "Open AI Gui": "Mở giao diện AI",
     "If you need help, just ask the AI what you need! ": "Nếu bạn cần trợ giúp, hãy hỏi AI những gì bạn cần!"
-}]])
+}]]
 
 if not isfile(path) then
     makefolder("Lonely Hub")
