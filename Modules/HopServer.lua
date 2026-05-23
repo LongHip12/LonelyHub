@@ -60,7 +60,7 @@ function Modules:JoinJobId(JobId)
 end
 
 function Modules:HopHighBounty()
-   blocal RF = game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser")
+   local RF = game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser")
 
     local best = {
     	Bounty = 0
