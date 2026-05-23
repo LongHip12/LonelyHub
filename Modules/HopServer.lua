@@ -59,6 +59,36 @@ function Modules:JoinJobId(JobId)
     end
 end
 
+function Modules:HopHighBounty()
+   blocal RF = game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser")
+
+    local best = {
+    	Bounty = 0
+    }
+
+    for i = 1,100 do
+	    local ok,res = pcall(RF.InvokeServer,RF,i)
+
+	    if ok and typeof(res) == "table" then
+		    for jobId,data in pairs(res) do
+			    local bounty = tonumber(data.Bounty) or 0
+			    local players = data.Count or data.Players or 0
+
+			    if bounty > best.Bounty and players < 12 then
+				    best.JobId = jobId
+				    best.Bounty = bounty
+				    best.Players = players
+			    end
+		    end
+	    end
+
+	    task.wait()
+    end
+
+    if best.JobId then
+	    RF:InvokeServer("teleport",best.JobId)
+    end
+end
 function Modules:HopLess()
     local Servers = GetServers()
 
