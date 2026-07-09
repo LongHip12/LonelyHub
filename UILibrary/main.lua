@@ -12,7 +12,7 @@ By Lonely Hub Team
 Discord: https://dsc.gg/lonelyhub
 
 ]]
-
+for
 -- removed settings :)
 
 local Lighting = game:GetService("Lighting")
@@ -6644,6 +6644,8 @@ ElementsTable.Slider = (function()
 		}
 
 		local Dragging = false
+		local PendingScale = nil
+		local DragConnection = nil
 
 		local SliderFrame = Components.Element(Config.Title, Config.Description, self.Container, false, Config)
 		SliderFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
@@ -6773,18 +6775,18 @@ ElementsTable.Slider = (function()
 			if not SliderInput:IsFocused() then
 				SliderDisplay.Visible = false
 				SliderInput.Text = tostring(Slider.Value)
-				
+
 				local targetWidth = calculateInputWidth(tostring(Slider.Value))
 				SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
 				inputVisible = true
-				
+
 				local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-				
+
 				TweenService:Create(SliderInput, tweenInfo, {
 					TextTransparency = 0,
 					BackgroundTransparency = 0.8
 				}):Play()
-				
+
 				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
 					Transparency = 0.7
 				}):Play()
@@ -6795,16 +6797,16 @@ ElementsTable.Slider = (function()
 			isHovering = false
 			if not SliderInput:IsFocused() and inputVisible then
 				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-				
+
 				TweenService:Create(SliderInput, tweenInfo, {
 					TextTransparency = 1,
 					BackgroundTransparency = 1
 				}):Play()
-				
+
 				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
 					Transparency = 1
 				}):Play()
-				
+
 				task.wait(0.2)
 				SliderDisplay.Visible = true
 				inputVisible = false
@@ -6823,12 +6825,12 @@ ElementsTable.Slider = (function()
 					dotCount = dotCount + 1
 					return dotCount == 1 and "." or ""
 				end)
-				
+
 				if cleanText ~= text then
 					SliderInput.Text = cleanText
 				end
-				
-				if SliderInput.Visible then
+
+				if inputVisible then
 					local targetWidth = calculateInputWidth(cleanText)
 					SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
 				end
@@ -6842,19 +6844,19 @@ ElementsTable.Slider = (function()
 			else
 				SliderInput.Text = tostring(Slider.Value)
 			end
-			
+
 			if not isHovering then
 				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-				
+
 				TweenService:Create(SliderInput, tweenInfo, {
 					TextTransparency = 1,
 					BackgroundTransparency = 1
 				}):Play()
-				
+
 				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
 					Transparency = 1
 				}):Play()
-				
+
 				task.wait(0.2)
 				SliderDisplay.Visible = true
 				inputVisible = false
@@ -6871,12 +6873,34 @@ ElementsTable.Slider = (function()
 			end
 		end)
 
+		local function StartDrag()
+			Dragging = true
+			if not DragConnection then
+				DragConnection = RunService.RenderStepped:Connect(function()
+					if PendingScale ~= nil then
+						local scale = PendingScale
+						PendingScale = nil
+						Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * scale))
+					end
+				end)
+			end
+		end
+
+		local function StopDrag()
+			Dragging = false
+			PendingScale = nil
+			if DragConnection then
+				DragConnection:Disconnect()
+				DragConnection = nil
+			end
+		end
+
 		Creator.AddSignal(SliderDot.InputBegan, function(Input)
 			if
 				Input.UserInputType == Enum.UserInputType.MouseButton1
 				or Input.UserInputType == Enum.UserInputType.Touch
 			then
-				Dragging = true
+				StartDrag()
 			end
 		end)
 
@@ -6885,7 +6909,7 @@ ElementsTable.Slider = (function()
 				Input.UserInputType == Enum.UserInputType.MouseButton1
 				or Input.UserInputType == Enum.UserInputType.Touch
 			then
-				Dragging = false
+				StopDrag()
 			end
 		end)
 
@@ -6899,15 +6923,14 @@ ElementsTable.Slider = (function()
 				end
 
 				if position then
-					local SizeScale = math.clamp((position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
-					Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * SizeScale))
+					PendingScale = math.clamp((position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
 				end
 			end
 		end)
 
 		Creator.AddSignal(SliderRail.InputBegan, function(Input)
 			if Input.UserInputType == Enum.UserInputType.Touch then
-				Dragging = true
+				StartDrag()
 				local SizeScale = math.clamp((Input.Position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
 				Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * SizeScale))
 			end
@@ -6915,7 +6938,16 @@ ElementsTable.Slider = (function()
 
 		Creator.AddSignal(SliderRail.InputEnded, function(Input)
 			if Input.UserInputType == Enum.UserInputType.Touch then
-				Dragging = false
+				StopDrag()
+			end
+		end)
+
+		Creator.AddSignal(UserInputService.InputEnded, function(Input)
+			if
+				Dragging
+				and (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch)
+			then
+				StopDrag()
 			end
 		end)
 
@@ -6929,8 +6961,8 @@ ElementsTable.Slider = (function()
 			SliderDot.Position = UDim2.new((self.Value - Slider.Min) / (Slider.Max - Slider.Min), -7, 0.5, 0)
 			SliderFill.Size = UDim2.fromScale((self.Value - Slider.Min) / (Slider.Max - Slider.Min), 1)
 			SliderDisplay.Text = tostring(self.Value)
-			
-			if SliderInput.Visible then
+
+			if inputVisible then
 				SliderInput.Text = tostring(self.Value)
 				local targetWidth = calculateInputWidth(tostring(self.Value))
 				SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
@@ -6941,6 +6973,7 @@ ElementsTable.Slider = (function()
 		end
 
 		function Slider:Destroy()
+			StopDrag()
 			SliderFrame:Destroy()
 			Library.Options[Idx] = nil
 		end
@@ -8589,11 +8622,14 @@ end
 
 for _, ElementComponent in pairs(ElementsTable) do
 	Elements["Add" .. ElementComponent.__type] = function(self, Idx, Config)
+		if Config == nil and type(Idx) == "table" then
+			Config = Idx
+			Idx = Config.Title or Config.Name or (ElementComponent.__type .. tostring(math.random(1, 1000000)))
+		end
 		ElementComponent.Container = self.Container
 		ElementComponent.Type = self.Type
 		ElementComponent.ScrollFrame = self.ScrollFrame
 		ElementComponent.Library = Library
-
 		return ElementComponent:New(Idx, Config)
 	end
 end
