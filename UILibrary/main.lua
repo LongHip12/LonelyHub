@@ -6628,11 +6628,16 @@ ElementsTable.Slider = (function()
 	Element.__type = "Slider"
 
 	function Element:New(Idx, Config)
+		if type(Idx) == "table" then
+			Config = Idx
+			Idx = Config.Title or "Slider"
+		end
+
 		assert(Config.Title, "Slider - Missing Title.")
-		assert(Config.Default, "Slider - Missing default value.")
-		assert(Config.Min, "Slider - Missing minimum value.")
-		assert(Config.Max, "Slider - Missing maximum value.")
-		assert(Config.Rounding, "Slider - Missing rounding value.")
+		assert(Config.Default ~= nil, "Slider - Missing default value.")
+		assert(Config.Min ~= nil, "Slider - Missing minimum value.")
+		assert(Config.Max ~= nil, "Slider - Missing maximum value.")
+		assert(Config.Rounding ~= nil, "Slider - Missing rounding value.")
 
 		local Slider = {
 			Value = nil,
@@ -6644,8 +6649,6 @@ ElementsTable.Slider = (function()
 		}
 
 		local Dragging = false
-		local PendingScale = nil
-		local DragConnection = nil
 
 		local SliderFrame = Components.Element(Config.Title, Config.Description, self.Container, false, Config)
 		SliderFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
@@ -6684,9 +6687,10 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		local SliderDisplay = New("TextLabel", {
+		local SliderDisplay = New("TextBox", {
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-			Text = "Value",
+			Text = Config.Default,
+			PlaceholderText = "",
 			TextSize = 12,
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Right,
@@ -6698,38 +6702,6 @@ ElementsTable.Slider = (function()
 			ThemeTag = {
 				TextColor3 = "SubText",
 			},
-		})
-
-		local SliderInput = New("TextBox", {
-			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-			Text = "",
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Right,
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			BackgroundTransparency = 0.8,
-			Size = UDim2.new(0, 0, 0, 14),
-			Position = UDim2.new(0, -4, 0.5, 0),
-			AnchorPoint = Vector2.new(1, 0.5),
-			PlaceholderText = "Value",
-			ClearTextOnFocus = false,
-			Visible = true,
-			TextWrapped = false,
-			TextTransparency = 1,
-			BackgroundTransparency = 1,
-			ThemeTag = {
-				TextColor3 = "SubText",
-				BackgroundColor3 = "Element",
-			},
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, 3),
-			}),
-			New("UIStroke", {
-				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-				Color = Color3.fromRGB(0, 0, 0),
-				Transparency = 1,
-				Thickness = 1,
-			}),
 		})
 
 		local SliderInner = New("Frame", {
@@ -6749,231 +6721,88 @@ ElementsTable.Slider = (function()
 				MaxSize = Vector2.new(150, math.huge),
 			}),
 			SliderDisplay,
-			SliderInput,
 			SliderFill,
 			SliderRail,
 		})
 
-		local isHovering = false
-		local inputVisible = false
+		AddSignal(SliderDisplay.FocusLost, function(enter)
+			local Text = SliderDisplay.Text
+			if not enter then return end
+			Slider:SetValue(tonumber(Text))
+		end)
 
-		local function calculateInputWidth(text)
-			local textSize = game:GetService("TextService"):GetTextSize(
-				text or "0",
-				12,
-				Enum.Font.SourceSans,
-				Vector2.new(1000, 14)
-			)
-			local padding = 8
-			local minWidth = 25
-			local maxWidth = 80
-			return math.max(minWidth, math.min(maxWidth, textSize.X + padding))
-		end
-
-		Creator.AddSignal(SliderFrame.Frame.MouseEnter, function()
-			isHovering = true
-			if not SliderInput:IsFocused() then
-				SliderDisplay.Visible = false
-				SliderInput.Text = tostring(Slider.Value)
-
-				local targetWidth = calculateInputWidth(tostring(Slider.Value))
-				SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
-				inputVisible = true
-
-				local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-
-				TweenService:Create(SliderInput, tweenInfo, {
-					TextTransparency = 0,
-					BackgroundTransparency = 0.8
-				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 0.7
-				}):Play()
+		AddSignal(SliderDisplay:GetPropertyChangedSignal("Text"), function()
+			if Slider.Value ~= nil and not Dragging and #SliderDisplay.Text > 0 and tonumber(SliderDisplay.Text) then
+				Slider:SetValue(SliderDisplay.Text)
 			end
 		end)
 
-		Creator.AddSignal(SliderFrame.Frame.MouseLeave, function()
-			isHovering = false
-			if not SliderInput:IsFocused() and inputVisible then
-				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-
-				TweenService:Create(SliderInput, tweenInfo, {
-					TextTransparency = 1,
-					BackgroundTransparency = 1
-				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 1
-				}):Play()
-
-				task.wait(0.2)
-				SliderDisplay.Visible = true
-				inputVisible = false
-			end
-		end)
-
-		Creator.AddSignal(SliderInput.Changed, function(property)
-			if property == "Text" then
-				local text = SliderInput.Text
-				local cleanText = text:gsub("[^%d%.%-]", "")
-				if cleanText:find("%-") and cleanText:find("%-") ~= 1 then
-					cleanText = cleanText:gsub("%-", "")
-				end
-				local dotCount = 0
-				cleanText = cleanText:gsub("%.", function()
-					dotCount = dotCount + 1
-					return dotCount == 1 and "." or ""
-				end)
-
-				if cleanText ~= text then
-					SliderInput.Text = cleanText
-				end
-
-				if inputVisible then
-					local targetWidth = calculateInputWidth(cleanText)
-					SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
-				end
-			end
-		end)
-
-		Creator.AddSignal(SliderInput.FocusLost, function(enterPressed)
-			local inputValue = tonumber(SliderInput.Text)
-			if inputValue then
-				Slider:SetValue(inputValue)
-			else
-				SliderInput.Text = tostring(Slider.Value)
-			end
-
-			if not isHovering then
-				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-
-				TweenService:Create(SliderInput, tweenInfo, {
-					TextTransparency = 1,
-					BackgroundTransparency = 1
-				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 1
-				}):Play()
-
-				task.wait(0.2)
-				SliderDisplay.Visible = true
-				inputVisible = false
-			end
-		end)
-
-		Creator.AddSignal(SliderInput.Focused, function()
-			SliderInput.Text = tostring(Slider.Value)
-		end)
-
-		Creator.AddSignal(SliderInput.InputBegan, function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Dragging = false
-			end
-		end)
-
-		local function StartDrag()
-			Dragging = true
-			if not DragConnection then
-				DragConnection = RunService.RenderStepped:Connect(function()
-					if PendingScale ~= nil then
-						local scale = PendingScale
-						PendingScale = nil
-						Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * scale))
-					end
-				end)
-			end
-		end
-
-		local function StopDrag()
-			Dragging = false
-			PendingScale = nil
-			if DragConnection then
-				DragConnection:Disconnect()
-				DragConnection = nil
-			end
-		end
-
-		Creator.AddSignal(SliderDot.InputBegan, function(Input)
-			if
-				Input.UserInputType == Enum.UserInputType.MouseButton1
+		Creator.AddSignal(SliderInner.InputBegan, function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1
 				or Input.UserInputType == Enum.UserInputType.Touch
 			then
-				StartDrag()
-			end
-		end)
-
-		Creator.AddSignal(SliderDot.InputEnded, function(Input)
-			if
-				Input.UserInputType == Enum.UserInputType.MouseButton1
-				or Input.UserInputType == Enum.UserInputType.Touch
-			then
-				StopDrag()
-			end
-		end)
-
-		Creator.AddSignal(UserInputService.InputChanged, function(Input)
-			if Dragging then
-				local position = nil
-				if Input.UserInputType == Enum.UserInputType.MouseMovement then
-					position = Input.Position
-				elseif Input.UserInputType == Enum.UserInputType.Touch then
-					position = Input.Position
-				end
-
-				if position then
-					PendingScale = math.clamp((position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
-				end
-			end
-		end)
-
-		Creator.AddSignal(SliderRail.InputBegan, function(Input)
-			if Input.UserInputType == Enum.UserInputType.Touch then
-				StartDrag()
-				local SizeScale = math.clamp((Input.Position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
+				Dragging = true
+				local SizeScale =
+					math.clamp((Input.Position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
 				Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * SizeScale))
-			end
-		end)
-
-		Creator.AddSignal(SliderRail.InputEnded, function(Input)
-			if Input.UserInputType == Enum.UserInputType.Touch then
-				StopDrag()
 			end
 		end)
 
 		Creator.AddSignal(UserInputService.InputEnded, function(Input)
 			if
-				Dragging
-				and (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch)
+				Input.UserInputType == Enum.UserInputType.MouseButton1
+				or Input.UserInputType == Enum.UserInputType.Touch
 			then
-				StopDrag()
+				Dragging = false
+			end
+		end)
+
+		Creator.AddSignal(UserInputService.InputChanged, function(Input)
+			if
+				Dragging
+				and (
+					Input.UserInputType == Enum.UserInputType.MouseMovement
+						or Input.UserInputType == Enum.UserInputType.Touch
+				)
+			then
+				local SizeScale =
+					math.clamp((Input.Position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X, 0, 1)
+				Slider:SetValue(Slider.Min + ((Slider.Max - Slider.Min) * SizeScale))
 			end
 		end)
 
 		function Slider:OnChanged(Func)
 			Slider.Changed = Func
-			Func(Slider.Value)
+			if type(Func) == "function" then
+				task.spawn(function()
+					pcall(Func, Slider.Value)
+				end)
+			end
 		end
 
 		function Slider:SetValue(Value)
-			self.Value = Library:Round(math.clamp(Value, Slider.Min, Slider.Max), Slider.Rounding)
+			Value = Value or self.Value
+
+			if (not tonumber(Value)) and tostring(Value):len() > 0 then
+				Value = self.Value
+			end
+
+			self.Value = Library:Round(math.clamp(tonumber(Value) or 0, Slider.Min, Slider.Max), Slider.Rounding) or 0
 			SliderDot.Position = UDim2.new((self.Value - Slider.Min) / (Slider.Max - Slider.Min), -7, 0.5, 0)
 			SliderFill.Size = UDim2.fromScale((self.Value - Slider.Min) / (Slider.Max - Slider.Min), 1)
 			SliderDisplay.Text = tostring(self.Value)
 
-			if inputVisible then
-				SliderInput.Text = tostring(self.Value)
-				local targetWidth = calculateInputWidth(tostring(self.Value))
-				SliderInput.Size = UDim2.new(0, targetWidth, 0, 14)
-			end
-
 			Library:SafeCallback(Slider.Callback, self.Value)
-			Library:SafeCallback(Slider.Changed, self.Value)
+			if Slider.Changed then
+				Library:SafeCallback(Slider.Changed, self.Value)
+			end
+		end
+
+		function Slider:GetValue()
+			return self.Value
 		end
 
 		function Slider:Destroy()
-			StopDrag()
 			SliderFrame:Destroy()
 			Library.Options[Idx] = nil
 		end
@@ -8622,14 +8451,11 @@ end
 
 for _, ElementComponent in pairs(ElementsTable) do
 	Elements["Add" .. ElementComponent.__type] = function(self, Idx, Config)
-		if Config == nil and type(Idx) == "table" then
-			Config = Idx
-			Idx = Config.Title or Config.Name or (ElementComponent.__type .. tostring(math.random(1, 1000000)))
-		end
 		ElementComponent.Container = self.Container
 		ElementComponent.Type = self.Type
 		ElementComponent.ScrollFrame = self.ScrollFrame
 		ElementComponent.Library = Library
+
 		return ElementComponent:New(Idx, Config)
 	end
 end
